@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>أنيسيفورس كافي — متابعة المبيعات</title>
+<style>
+:root{
+  --bg:#fff7ed;
+  --surface:#ffffff;
+  --surface-2:#fff0e0;
+  --line:#fed7aa;
+  --gold:#f97316;
+  --gold-bright:#c2410c;
+  --gold-dim:#ea580c;
+  --cream:#332f27;
+  --cream-dim:#5f5747;
+  --muted:#7d745f;
+  --ok:#4aae35;
+  --danger:#c0392b;
+  --radius:14px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;height:100%;}
+body{
+  font-family:'Tajawal','Segoe UI',Arial,sans-serif;
+  background:
+    radial-gradient(1200px 600px at 15% -10%, #ffedd5 0%, transparent 60%),
+    radial-gradient(1000px 500px at 110% 10%, #e1f7db 0%, transparent 55%),
+    var(--bg);
+  color:var(--cream);
+  min-height:100%;
+}
+.wrap{max-width:1100px; margin:0 auto; padding:18px;}
+
+/* ---------- شاشة تسجيل الدخول ---------- */
+#loginScreen{
+  min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;
+}
+.login-box{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+  box-shadow:0 14px 30px rgba(194,65,12,.12); padding:28px 24px; width:100%; max-width:360px;
+}
+.login-box h1{font-size:20px; margin:0 0 4px; text-align:center; color:var(--gold-bright);}
+.login-box .sub{font-size:13px; color:var(--muted); text-align:center; margin-bottom:20px;}
+.field{margin-bottom:14px;}
+.field label{display:block; font-size:12.5px; color:var(--cream-dim); margin-bottom:5px;}
+.field input{
+  width:100%; padding:11px 12px; border-radius:10px; border:1px solid var(--line);
+  background:var(--surface-2); font-size:14px; color:var(--cream); font-family:inherit;
+}
+.field input:focus{outline:2px solid var(--gold); outline-offset:1px;}
+.btn{
+  width:100%; padding:12px; border:none; border-radius:10px; background:var(--gold);
+  color:#fff; font-weight:800; font-size:14.5px; cursor:pointer; font-family:inherit;
+}
+.btn:hover{background:var(--gold-bright);}
+.btn:disabled{opacity:.6; cursor:default;}
+.err-msg{color:var(--danger); font-size:12.5px; text-align:center; margin-top:10px; min-height:16px;}
+.config-warning{
+  max-width:420px; margin:60px auto; background:#fff3f0; border:1px solid #f3b5a8;
+  border-radius:12px; padding:18px; text-align:center; color:var(--danger); font-size:13.5px; line-height:1.8;
+}
+
+/* ---------- الواجهة الرئيسية ---------- */
+#app{display:none;}
+.topbar{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:14px 4px; border-bottom:1px solid var(--line); margin-bottom:16px;
+}
+.topbar h1{font-size:18px; margin:0; color:var(--gold-bright);}
+.status-dot{width:9px; height:9px; border-radius:50%; display:inline-block; margin-left:6px;}
+.status-dot.on{background:var(--ok); box-shadow:0 0 6px var(--ok);}
+.status-dot.off{background:var(--danger);}
+.status-txt{font-size:12px; color:var(--muted);}
+.logout-btn{
+  border:1px solid var(--line); background:var(--surface); color:var(--cream-dim);
+  padding:8px 14px; border-radius:10px; font-size:13px; cursor:pointer; font-family:inherit;
+}
+
+.day-select-row{display:flex; align-items:center; gap:10px; margin-bottom:16px; flex-wrap:wrap;}
+.day-select-row label{font-size:13px; color:var(--cream-dim);}
+.day-select-row select{
+  flex:1; min-width:220px; padding:9px 10px; border-radius:10px; border:1px solid var(--line);
+  background:var(--surface); font-size:13.5px; color:var(--cream); font-family:inherit;
+}
+.day-status-badge{
+  font-size:11px; font-weight:800; padding:3px 10px; border-radius:999px;
+}
+.day-status-badge.open{background:rgba(74,174,53,.15); color:var(--ok);}
+.day-status-badge.closed{background:rgba(192,57,43,.12); color:var(--danger);}
+
+.cards-grid{
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:20px;
+}
+.card{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+  padding:14px; box-shadow:0 4px 14px rgba(249,115,22,.08);
+}
+.card .lbl{font-size:11.5px; color:var(--muted); margin-bottom:6px;}
+.card .val{font-size:19px; font-weight:900; color:var(--cream);}
+.card.accent .val{color:var(--gold-bright);}
+.card.danger .val{color:var(--danger);}
+.card.ok .val{color:var(--ok);}
+
+.section-title{font-size:15px; font-weight:800; margin:22px 0 10px; color:var(--cream);}
+.panel{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+  overflow:hidden; margin-bottom:10px;
+}
+table{width:100%; border-collapse:collapse; font-size:12.5px;}
+thead th{
+  background:var(--surface-2); text-align:right; padding:9px 10px; font-size:11.5px;
+  color:var(--cream-dim); font-weight:800; white-space:nowrap;
+}
+tbody td{padding:8px 10px; border-top:1px solid var(--line); vertical-align:top;}
+tbody tr:hover{background:var(--surface-2);}
+.empty-note{padding:18px; text-align:center; color:var(--muted); font-size:13px;}
+.pill{
+  font-size:10.5px; font-weight:800; padding:2px 8px; border-radius:999px; display:inline-block;
+}
+.pill.cash{background:rgba(74,174,53,.15); color:var(--ok);}
+.pill.wallet{background:rgba(59,130,246,.15); color:#2563eb;}
+.pill.owner{background:rgba(234,88,12,.12); color:var(--gold-dim);}
+.items-list{font-size:11.5px; color:var(--cream-dim);}
+.shift-card{
+  background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:8px;
+}
+.shift-card .top{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;}
+.shift-card .row{display:flex; justify-content:space-between; font-size:12.5px; margin:3px 0; color:var(--cream-dim);}
+.shift-card .row b{color:var(--cream); font-weight:800;}
+</style>
+</head>
+<body>
+
+<!-- ============ شاشة لو مفيش إعدادات Firebase متحطة ============ -->
+<div id="noConfigScreen" style="display:none;">
+  <div class="config-warning">
+    لسه معملتش ربط بين الموقع ده وبيانات Firebase.<br><br>
+    افتح ملف <b>dashboard.html</b> وحط بيانات مشروع Firebase بتاعك في المتغير
+    <b>FIREBASE_CONFIG</b> في أول السكريبت (نفس القيم اللي حطيتها في برنامج الكاشير بالظبط).
+  </div>
+</div>
+
+<!-- ============ شاشة تسجيل الدخول ============ -->
+<div id="loginScreen">
+  <div class="login-box">
+    <h1>أنيسيفورس كافي</h1>
+    <div class="sub">متابعة المبيعات من أي مكان</div>
+    <div class="field">
+      <label>الإيميل</label>
+      <input type="email" id="loginEmail" autocomplete="username" placeholder="you@example.com">
+    </div>
+    <div class="field">
+      <label>كلمة المرور</label>
+      <input type="password" id="loginPassword" autocomplete="current-password" placeholder="••••••••">
+    </div>
+    <button class="btn" id="loginBtn">تسجيل الدخول</button>
+    <div class="err-msg" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- ============ الواجهة الرئيسية ============ -->
+<div id="app">
+  <div class="wrap">
+    <div class="topbar">
+      <div>
+        <h1>أنيسيفورس كافي — متابعة المبيعات</h1>
+        <span class="status-dot off" id="statusDot"></span><span class="status-txt" id="statusTxt">جاري الاتصال...</span>
+      </div>
+      <button class="logout-btn" id="logoutBtn">تسجيل الخروج</button>
+    </div>
+
+    <div class="day-select-row">
+      <label>يوم العمل:</label>
+      <select id="daySelect"></select>
+      <span class="day-status-badge" id="dayStatusBadge"></span>
+    </div>
+
+    <div class="cards-grid">
+      <div class="card accent"><div class="lbl">إجمالي المبيعات</div><div class="val" id="cGross">٠</div></div>
+      <div class="card ok"><div class="lbl">صافي المبيعات</div><div class="val" id="cNet">٠</div></div>
+      <div class="card"><div class="lbl">كاش</div><div class="val" id="cCash">٠</div></div>
+      <div class="card"><div class="lbl">محافظ / فودافون كاش</div><div class="val" id="cWallet">٠</div></div>
+      <div class="card danger"><div class="lbl">المصروفات</div><div class="val" id="cExp">٠</div></div>
+      <div class="card"><div class="lbl">عدد الفواتير</div><div class="val" id="cCount">٠</div></div>
+    </div>
+
+    <div class="section-title">الورديات</div>
+    <div id="shiftsBox"><div class="panel"><div class="empty-note">جاري التحميل...</div></div></div>
+
+    <div class="section-title">أحدث الفواتير (لحظي)</div>
+    <div class="panel">
+      <table>
+        <thead><tr>
+          <th>الوقت</th><th>الترابيزة</th><th>الأصناف</th><th>الخصم</th><th>الإجمالي</th><th>طريقة الدفع</th><th>الكاشير</th>
+        </tr></thead>
+        <tbody id="ordersBody"></tbody>
+      </table>
+      <div class="empty-note" id="ordersEmpty" style="display:none;">لا توجد فواتير في هذا اليوم بعد</div>
+    </div>
+
+    <div class="section-title">المصروفات (لحظي)</div>
+    <div class="panel">
+      <table>
+        <thead><tr>
+          <th>الوقت</th><th>النوع</th><th>ملاحظة</th><th>المبلغ</th><th>الكاشير</th>
+        </tr></thead>
+        <tbody id="expensesBody"></tbody>
+      </table>
+      <div class="empty-note" id="expensesEmpty" style="display:none;">لا توجد مصروفات في هذا اليوم بعد</div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+/* ============ حط هنا بيانات مشروع Firebase (نفس القيم اللي في برنامج الكاشير بالظبط) ============ */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAf8J4Nl837MQZUvqxgJa4AwqnM51WTY4A",
+  authDomain: "sastym-26148.firebaseapp.com",
+  projectId: "sastym-26148",
+  storageBucket: "sastym-26148.firebasestorage.app",
+  messagingSenderId: "853007257195",
+  appId: "1:853007257195:web:6a30816df39a0aacffeb2e"
+};
+
+const EXPENSE_CATEGORY_LABELS = {
+  cleaning: 'مستلزمات نظافة',
+  hospitality: 'ضيافة',
+  emergency: 'مستلزمات طارئة',
+  quick_purchase: 'مشتريات نقدية سريعة',
+  maintenance: 'صيانة',
+  bills: 'فواتير (كهرباء / مياه / نت)',
+  delivery: 'توصيل ونقل',
+  salary_advance: 'سلفة / مرتبات',
+  marketing: 'تسويق وإعلانات',
+  other: 'أخرى'
+};
+const catLabel = id => EXPENSE_CATEGORY_LABELS[id] || 'أخرى';
+const fmt2 = n => (n||0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+
+if(!FIREBASE_CONFIG.apiKey || !FIREBASE_CONFIG.projectId){
+  document.getElementById('noConfigScreen').style.display = 'block';
+  document.getElementById('loginScreen').style.display = 'none';
+} else {
+  init();
+}
+
+async function init(){
+  const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+  const { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } =
+    await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
+  const { getFirestore, collection, query, where, orderBy, limit, onSnapshot } =
+    await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+
+  const app = initializeApp(FIREBASE_CONFIG);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const loginScreen = document.getElementById('loginScreen');
+  const appEl = document.getElementById('app');
+  const loginBtn = document.getElementById('loginBtn');
+  const loginErr = document.getElementById('loginErr');
+
+  loginBtn.addEventListener('click', doLogin);
+  document.getElementById('loginPassword').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+
+  function doLogin(){
+    const email = document.getElementById('loginEmail').value.trim();
+    const pass = document.getElementById('loginPassword').value;
+    if(!email || !pass){ loginErr.textContent = 'من فضلك أدخل الإيميل وكلمة المرور'; return; }
+    loginBtn.disabled = true; loginErr.textContent = '';
+    signInWithEmailAndPassword(auth, email, pass)
+      .catch(err=>{ loginErr.textContent = 'بيانات الدخول غير صحيحة'; console.warn(err); })
+      .finally(()=>{ loginBtn.disabled = false; });
+  }
+
+  document.getElementById('logoutBtn').addEventListener('click', ()=> signOut(auth));
+
+  onAuthStateChanged(auth, (user)=>{
+    if(user){
+      loginScreen.style.display = 'none';
+      appEl.style.display = 'block';
+      startDashboard(db, collection, query, where, orderBy, limit, onSnapshot);
+    } else {
+      appEl.style.display = 'none';
+      loginScreen.style.display = 'flex';
+    }
+  });
+}
+
+let _daysUnsub = null, _ordersUnsub = null, _expensesUnsub = null, _shiftsUnsub = null;
+let _daysCache = [];
+
+function startDashboard(db, collection, query, where, orderBy, limit, onSnapshot){
+  const statusDot = document.getElementById('statusDot');
+  const statusTxt = document.getElementById('statusTxt');
+  statusDot.className = 'status-dot on';
+  statusTxt.textContent = 'متصل — البيانات بتتحدث لحظياً';
+
+  const daySelect = document.getElementById('daySelect');
+  daySelect.addEventListener('change', ()=> loadDay(db, collection, query, where, onSnapshot, daySelect.value));
+
+  if(_daysUnsub) _daysUnsub();
+  const daysQ = query(collection(db,'businessDays'), orderBy('ts','desc'), limit(60));
+  _daysUnsub = onSnapshot(daysQ, (snap)=>{
+    _daysCache = [];
+    snap.forEach(d=> _daysCache.push({ id:d.id, ...d.data() }));
+    const prevSelected = daySelect.value;
+    daySelect.innerHTML = _daysCache.map(d=>{
+      const lbl = `${d.dateKey || d.id} ${d.closedAt ? '(مغلق)' : '(مفتوح الآن)'}`;
+      return `<option value="${d.id}">${lbl}</option>`;
+    }).join('') || '<option value="">لا توجد أيام عمل بعد</option>';
+    const toSelect = _daysCache.find(d=>d.id===prevSelected) ? prevSelected : (_daysCache[0] ? _daysCache[0].id : '');
+    daySelect.value = toSelect;
+    updateDayBadge(toSelect);
+    if(toSelect) loadDay(db, collection, query, where, onSnapshot, toSelect);
+  }, (err)=>{
+    statusDot.className = 'status-dot off';
+    statusTxt.textContent = 'في مشكلة في الاتصال';
+    console.warn(err);
+  });
+}
+
+function updateDayBadge(dayId){
+  const badge = document.getElementById('dayStatusBadge');
+  const d = _daysCache.find(x=>x.id===dayId);
+  if(!d){ badge.textContent=''; return; }
+  if(d.closedAt){ badge.className='day-status-badge closed'; badge.textContent='مغلق'; }
+  else { badge.className='day-status-badge open'; badge.textContent='مفتوح الآن'; }
+}
+
+function loadDay(db, collection, query, where, onSnapshot, bdId){
+  updateDayBadge(bdId);
+  if(_ordersUnsub) _ordersUnsub();
+  if(_expensesUnsub) _expensesUnsub();
+  if(_shiftsUnsub) _shiftsUnsub();
+  if(!bdId){
+    renderOrders([]); renderExpenses([]); renderShifts([]);
+    return;
+  }
+
+  let ordersData = [], expensesData = [], shiftsData = [];
+
+  const ordersQ = query(collection(db,'orders'), where('bdId','==',bdId));
+  _ordersUnsub = onSnapshot(ordersQ, (snap)=>{
+    ordersData = [];
+    snap.forEach(d=>{ const v = d.data(); if(!v.deleted) ordersData.push(v); });
+    ordersData.sort((a,b)=> (b.ts||0) - (a.ts||0));
+    renderOrders(ordersData);
+    updateSummary(ordersData, expensesData);
+  });
+
+  const expensesQ = query(collection(db,'expenses'), where('bdId','==',bdId));
+  _expensesUnsub = onSnapshot(expensesQ, (snap)=>{
+    expensesData = [];
+    snap.forEach(d=>{ const v = d.data(); if(!v.deleted) expensesData.push(v); });
+    expensesData.sort((a,b)=> (b.ts||0) - (a.ts||0));
+    renderExpenses(expensesData);
+    updateSummary(ordersData, expensesData);
+  });
+
+  const shiftsQ = query(collection(db,'shifts'), where('bdId','==',bdId));
+  _shiftsUnsub = onSnapshot(shiftsQ, (snap)=>{
+    shiftsData = [];
+    snap.forEach(d=> shiftsData.push(d.data()));
+    shiftsData.sort((a,b)=> (b.ts||0) - (a.ts||0));
+    renderShifts(shiftsData);
+  });
+}
+
+function updateSummary(orders, expenses){
+  const paid = orders.filter(o=>!o.owner);
+  const gross = orders.reduce((s,o)=>s+(o.subTotal||0),0);
+  const net = paid.reduce((s,o)=>s+(o.total||0),0);
+  const cash = paid.filter(o=>(o.paymentMethod||'cash')==='cash').reduce((s,o)=>s+(o.total||0),0);
+  const wallet = paid.filter(o=>o.paymentMethod==='instapay'||o.paymentMethod==='wallet').reduce((s,o)=>s+(o.total||0),0);
+  const expTotal = expenses.reduce((s,e)=>s+(e.amount||0),0);
+  document.getElementById('cGross').textContent = fmt2(gross);
+  document.getElementById('cNet').textContent = fmt2(net);
+  document.getElementById('cCash').textContent = fmt2(cash);
+  document.getElementById('cWallet').textContent = fmt2(wallet);
+  document.getElementById('cExp').textContent = fmt2(expTotal);
+  document.getElementById('cCount').textContent = orders.length;
+}
+
+function renderOrders(orders){
+  const body = document.getElementById('ordersBody');
+  const empty = document.getElementById('ordersEmpty');
+  if(!orders.length){ body.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  body.innerHTML = orders.map(o=>{
+    const itemsStr = (o.items||[]).map(i=>`${i.name} ×${i.qty}`).join('، ');
+    const payLbl = o.owner ? '<span class="pill owner">أونر</span>'
+      : (o.paymentMethod==='instapay'||o.paymentMethod==='wallet') ? '<span class="pill wallet">محافظ</span>'
+      : '<span class="pill cash">كاش</span>';
+    return `<tr>
+      <td>${o.time||'-'}</td>
+      <td>${o.tableName||'-'}</td>
+      <td class="items-list">${itemsStr}${o.notes?` <br><i>(${o.notes})</i>`:''}</td>
+      <td>${fmt2(o.discount||0)}</td>
+      <td><b>${fmt2(o.total||0)}</b></td>
+      <td>${payLbl}</td>
+      <td>${o.cashier||'-'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderExpenses(expenses){
+  const body = document.getElementById('expensesBody');
+  const empty = document.getElementById('expensesEmpty');
+  if(!expenses.length){ body.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  body.innerHTML = expenses.map(e=>`<tr>
+      <td>${e.time||'-'}</td>
+      <td>${catLabel(e.category)}</td>
+      <td>${e.note||'-'}</td>
+      <td><b>${fmt2(e.amount||0)}</b></td>
+      <td>${e.cashierName||'-'}</td>
+    </tr>`).join('');
+}
+
+function renderShifts(shifts){
+  const box = document.getElementById('shiftsBox');
+  if(!shifts.length){ box.innerHTML = '<div class="panel"><div class="empty-note">لا توجد ورديات مسجلة لهذا اليوم</div></div>'; return; }
+  box.innerHTML = shifts.map(s=>{
+    const isOpen = s.status === 'open';
+    return `<div class="shift-card">
+      <div class="top">
+        <b>${s.cashierName || '-'}</b>
+        <span class="day-status-badge ${isOpen?'open':'closed'}">${isOpen?'مفتوحة':'مغلقة'}</span>
+      </div>
+      <div class="row"><span>العهدة الافتتاحية</span><b>${fmt2(s.openingCash)}</b></div>
+      ${!isOpen ? `
+        <div class="row"><span>النقدية المتوقعة</span><b>${fmt2(s.expectedCash)}</b></div>
+        <div class="row"><span>النقدية الفعلية</span><b>${fmt2(s.countedCash)}</b></div>
+        <div class="row"><span>العجز / الزيادة</span><b>${(s.variance>=0?'+':'')+fmt2(s.variance)}</b></div>
+      ` : ''}
+    </div>`;
+  }).join('');
+}
+</script>
+</body>
+</html>
