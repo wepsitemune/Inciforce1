@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>أنيسيفورس كافي — متابعة المبيعات</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <style>
 :root{
   --bg:#fff7ed;
@@ -66,7 +67,7 @@ body{
 #app{display:none;}
 .topbar{
   display:flex; align-items:center; justify-content:space-between; gap:10px;
-  padding:14px 4px; border-bottom:1px solid var(--line); margin-bottom:16px;
+  padding:14px 4px; border-bottom:1px solid var(--line); margin-bottom:10px;
 }
 .topbar h1{font-size:18px; margin:0; color:var(--gold-bright);}
 .status-dot{width:9px; height:9px; border-radius:50%; display:inline-block; margin-left:6px;}
@@ -78,10 +79,20 @@ body{
   padding:8px 14px; border-radius:10px; font-size:13px; cursor:pointer; font-family:inherit;
 }
 
+/* ---------- تبويبات ---------- */
+.tabbar{display:flex; gap:8px; margin-bottom:18px; border-bottom:1px solid var(--line);}
+.tab-btn{
+  padding:10px 16px; border:none; background:none; font-family:inherit; font-size:13.5px;
+  font-weight:800; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px;
+}
+.tab-btn.active{color:var(--gold-bright); border-bottom-color:var(--gold-bright);}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
 .day-select-row{display:flex; align-items:center; gap:10px; margin-bottom:16px; flex-wrap:wrap;}
 .day-select-row label{font-size:13px; color:var(--cream-dim);}
-.day-select-row select{
-  flex:1; min-width:220px; padding:9px 10px; border-radius:10px; border:1px solid var(--line);
+.day-select-row select, .day-select-row input{
+  flex:1; min-width:180px; padding:9px 10px; border-radius:10px; border:1px solid var(--line);
   background:var(--surface); font-size:13.5px; color:var(--cream); font-family:inherit;
 }
 .day-status-badge{
@@ -108,6 +119,7 @@ body{
   background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
   overflow:hidden; margin-bottom:10px;
 }
+.panel.pad{padding:16px;}
 table{width:100%; border-collapse:collapse; font-size:12.5px;}
 thead th{
   background:var(--surface-2); text-align:right; padding:9px 10px; font-size:11.5px;
@@ -122,6 +134,9 @@ tbody tr:hover{background:var(--surface-2);}
 .pill.cash{background:rgba(74,174,53,.15); color:var(--ok);}
 .pill.wallet{background:rgba(59,130,246,.15); color:#2563eb;}
 .pill.owner{background:rgba(234,88,12,.12); color:var(--gold-dim);}
+.pill.stock-ok{background:rgba(74,174,53,.15); color:var(--ok);}
+.pill.stock-low{background:rgba(234,88,12,.15); color:var(--gold-dim);}
+.pill.stock-out{background:rgba(192,57,43,.15); color:var(--danger);}
 .items-list{font-size:11.5px; color:var(--cream-dim);}
 .shift-card{
   background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:8px;
@@ -129,6 +144,23 @@ tbody tr:hover{background:var(--surface-2);}
 .shift-card .top{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;}
 .shift-card .row{display:flex; justify-content:space-between; font-size:12.5px; margin:3px 0; color:var(--cream-dim);}
 .shift-card .row b{color:var(--cream); font-weight:800;}
+
+/* ---------- تقارير ---------- */
+.period-row{display:flex; align-items:center; gap:10px; margin-bottom:16px; flex-wrap:wrap;}
+.period-row label{font-size:13px; color:var(--cream-dim);}
+.period-toggle{display:flex; border:1px solid var(--line); border-radius:10px; overflow:hidden;}
+.period-toggle button{
+  padding:9px 14px; border:none; background:var(--surface); color:var(--cream-dim); font-family:inherit;
+  font-size:12.5px; font-weight:700; cursor:pointer;
+}
+.period-toggle button.active{background:var(--gold); color:#fff;}
+.chart-box{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:14px; margin-bottom:16px;}
+.chart-box h3{font-size:13.5px; margin:0 0 10px; color:var(--cream-dim);}
+.chart-box canvas{max-height:280px;}
+.slow-list{display:flex; flex-wrap:wrap; gap:6px;}
+.slow-chip{
+  background:var(--surface-2); border:1px solid var(--line); border-radius:999px; padding:5px 12px; font-size:12px; color:var(--cream-dim);
+}
 </style>
 </head>
 <body>
@@ -171,44 +203,108 @@ tbody tr:hover{background:var(--surface-2);}
       <button class="logout-btn" id="logoutBtn">تسجيل الخروج</button>
     </div>
 
-    <div class="day-select-row">
-      <label>يوم العمل:</label>
-      <select id="daySelect"></select>
-      <span class="day-status-badge" id="dayStatusBadge"></span>
+    <div class="tabbar">
+      <button class="tab-btn active" id="tabBtnMonitor">🔴 متابعة لحظية</button>
+      <button class="tab-btn" id="tabBtnReports">📊 تقارير وإحصائيات</button>
+      <button class="tab-btn" id="tabBtnInventory">📦 المخزون</button>
     </div>
 
-    <div class="cards-grid">
-      <div class="card accent"><div class="lbl">إجمالي المبيعات</div><div class="val" id="cGross">٠</div></div>
-      <div class="card ok"><div class="lbl">صافي المبيعات</div><div class="val" id="cNet">٠</div></div>
-      <div class="card"><div class="lbl">كاش</div><div class="val" id="cCash">٠</div></div>
-      <div class="card"><div class="lbl">محافظ / فودافون كاش</div><div class="val" id="cWallet">٠</div></div>
-      <div class="card danger"><div class="lbl">المصروفات</div><div class="val" id="cExp">٠</div></div>
-      <div class="card"><div class="lbl">عدد الفواتير</div><div class="val" id="cCount">٠</div></div>
+    <!-- ============ تبويب: المتابعة اللحظية ============ -->
+    <div class="tab-panel active" id="tabMonitor">
+      <div class="day-select-row">
+        <label>يوم العمل:</label>
+        <select id="daySelect"></select>
+        <span class="day-status-badge" id="dayStatusBadge"></span>
+      </div>
+
+      <div class="cards-grid">
+        <div class="card accent"><div class="lbl">إجمالي المبيعات</div><div class="val" id="cGross">٠</div></div>
+        <div class="card ok"><div class="lbl">صافي المبيعات</div><div class="val" id="cNet">٠</div></div>
+        <div class="card"><div class="lbl">كاش</div><div class="val" id="cCash">٠</div></div>
+        <div class="card"><div class="lbl">محافظ / فودافون كاش</div><div class="val" id="cWallet">٠</div></div>
+        <div class="card danger"><div class="lbl">المصروفات</div><div class="val" id="cExp">٠</div></div>
+        <div class="card"><div class="lbl">عدد الفواتير</div><div class="val" id="cCount">٠</div></div>
+      </div>
+
+      <div class="section-title">الورديات</div>
+      <div id="shiftsBox"><div class="panel"><div class="empty-note">جاري التحميل...</div></div></div>
+
+      <div class="section-title">أحدث الفواتير (لحظي)</div>
+      <div class="panel">
+        <table>
+          <thead><tr>
+            <th>الوقت</th><th>الترابيزة</th><th>الأصناف</th><th>الخصم</th><th>الإجمالي</th><th>طريقة الدفع</th><th>الكاشير</th>
+          </tr></thead>
+          <tbody id="ordersBody"></tbody>
+        </table>
+        <div class="empty-note" id="ordersEmpty" style="display:none;">لا توجد فواتير في هذا اليوم بعد</div>
+      </div>
+
+      <div class="section-title">المصروفات (لحظي)</div>
+      <div class="panel">
+        <table>
+          <thead><tr>
+            <th>الوقت</th><th>النوع</th><th>ملاحظة</th><th>المبلغ</th><th>الكاشير</th>
+          </tr></thead>
+          <tbody id="expensesBody"></tbody>
+        </table>
+        <div class="empty-note" id="expensesEmpty" style="display:none;">لا توجد مصروفات في هذا اليوم بعد</div>
+      </div>
     </div>
 
-    <div class="section-title">الورديات</div>
-    <div id="shiftsBox"><div class="panel"><div class="empty-note">جاري التحميل...</div></div></div>
+    <!-- ============ تبويب: التقارير والإحصائيات ============ -->
+    <div class="tab-panel" id="tabReports">
+      <div class="period-row">
+        <label>الفترة:</label>
+        <div class="period-toggle">
+          <button type="button" class="active" id="periodDayBtn">يوم معيّن</button>
+          <button type="button" id="periodMonthBtn">شهر كامل</button>
+        </div>
+        <input type="date" id="periodDateInput" style="max-width:180px;">
+        <input type="month" id="periodMonthInput" style="max-width:180px; display:none;">
+      </div>
 
-    <div class="section-title">أحدث الفواتير (لحظي)</div>
-    <div class="panel">
-      <table>
-        <thead><tr>
-          <th>الوقت</th><th>الترابيزة</th><th>الأصناف</th><th>الخصم</th><th>الإجمالي</th><th>طريقة الدفع</th><th>الكاشير</th>
-        </tr></thead>
-        <tbody id="ordersBody"></tbody>
-      </table>
-      <div class="empty-note" id="ordersEmpty" style="display:none;">لا توجد فواتير في هذا اليوم بعد</div>
+      <div class="cards-grid">
+        <div class="card accent"><div class="lbl">إجمالي المبيعات</div><div class="val" id="rGross">٠</div></div>
+        <div class="card ok"><div class="lbl">صافي الربح الحقيقي</div><div class="val" id="rProfit">٠</div></div>
+        <div class="card danger"><div class="lbl">إجمالي المصروفات</div><div class="val" id="rExp">٠</div></div>
+        <div class="card"><div class="lbl">عدد الفواتير</div><div class="val" id="rCount">٠</div></div>
+      </div>
+
+      <div class="chart-box">
+        <h3>أكتر الأوقات زحمة (عدد الفواتير حسب الساعة)</h3>
+        <canvas id="peakHoursChart"></canvas>
+      </div>
+
+      <div class="chart-box">
+        <h3>أكتر 10 أصناف مبيعاً (بالكمية)</h3>
+        <canvas id="topSellersChart"></canvas>
+      </div>
+
+      <div class="section-title">الأصناف الراكدة (متوفرة في المنيو ومالهاش أي مبيعات في الفترة دي)</div>
+      <div class="panel pad">
+        <div class="slow-list" id="slowMoversList"></div>
+        <div class="empty-note" id="slowMoversEmpty" style="display:none;">كل أصناف المنيو اتباعت خلال الفترة دي 👏</div>
+      </div>
     </div>
 
-    <div class="section-title">المصروفات (لحظي)</div>
-    <div class="panel">
-      <table>
-        <thead><tr>
-          <th>الوقت</th><th>النوع</th><th>ملاحظة</th><th>المبلغ</th><th>الكاشير</th>
-        </tr></thead>
-        <tbody id="expensesBody"></tbody>
-      </table>
-      <div class="empty-note" id="expensesEmpty" style="display:none;">لا توجد مصروفات في هذا اليوم بعد</div>
+    <!-- ============ تبويب: المخزون ============ -->
+    <div class="tab-panel" id="tabInventory">
+      <div id="lowStockBanner" style="display:none;" class="chart-box" >
+        <h3 style="color:var(--danger);">⚠️ أصناف قربت تخلص أو خلصت خالص</h3>
+        <div class="slow-list" id="lowStockList"></div>
+      </div>
+
+      <div class="section-title">كل أصناف المخزون (لحظي)</div>
+      <div class="panel">
+        <table>
+          <thead><tr>
+            <th>الصنف</th><th>الرصيد الحالي</th><th>الحد الأدنى</th><th>الحالة</th>
+          </tr></thead>
+          <tbody id="inventoryBody"></tbody>
+        </table>
+        <div class="empty-note" id="inventoryEmpty" style="display:none;">لسه المخزون معملوش مزامنة من الكاشير. افتح الكاشير وسيبه شغال وهيتزامن أوتوماتيك.</div>
+      </div>
     </div>
   </div>
 </div>
@@ -250,7 +346,7 @@ async function init(){
   const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
   const { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } =
     await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
-  const { getFirestore, collection, query, where, orderBy, limit, onSnapshot } =
+  const { getFirestore, collection, query, where, orderBy, limit, onSnapshot, doc, getDoc } =
     await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
 
   const app = initializeApp(FIREBASE_CONFIG);
@@ -281,7 +377,7 @@ async function init(){
     if(user){
       loginScreen.style.display = 'none';
       appEl.style.display = 'block';
-      startDashboard(db, collection, query, where, orderBy, limit, onSnapshot);
+      startDashboard(db, { collection, query, where, orderBy, limit, onSnapshot, doc, getDoc });
     } else {
       appEl.style.display = 'none';
       loginScreen.style.display = 'flex';
@@ -289,17 +385,32 @@ async function init(){
   });
 }
 
+/* ============ تبديل التبويبات ============ */
+document.getElementById('tabBtnMonitor').addEventListener('click', ()=> switchTab('monitor'));
+document.getElementById('tabBtnReports').addEventListener('click', ()=> switchTab('reports'));
+document.getElementById('tabBtnInventory').addEventListener('click', ()=> switchTab('inventory'));
+function switchTab(which){
+  document.getElementById('tabBtnMonitor').classList.toggle('active', which==='monitor');
+  document.getElementById('tabBtnReports').classList.toggle('active', which==='reports');
+  document.getElementById('tabBtnInventory').classList.toggle('active', which==='inventory');
+  document.getElementById('tabMonitor').classList.toggle('active', which==='monitor');
+  document.getElementById('tabReports').classList.toggle('active', which==='reports');
+  document.getElementById('tabInventory').classList.toggle('active', which==='inventory');
+}
+
+/* ============ تبويب المتابعة اللحظية ============ */
 let _daysUnsub = null, _ordersUnsub = null, _expensesUnsub = null, _shiftsUnsub = null;
 let _daysCache = [];
 
-function startDashboard(db, collection, query, where, orderBy, limit, onSnapshot){
+function startDashboard(db, fns){
+  const { collection, query, where, orderBy, limit, onSnapshot, doc, getDoc } = fns;
   const statusDot = document.getElementById('statusDot');
   const statusTxt = document.getElementById('statusTxt');
   statusDot.className = 'status-dot on';
   statusTxt.textContent = 'متصل — البيانات بتتحدث لحظياً';
 
   const daySelect = document.getElementById('daySelect');
-  daySelect.addEventListener('change', ()=> loadDay(db, collection, query, where, onSnapshot, daySelect.value));
+  daySelect.addEventListener('change', ()=> loadDay(db, fns, daySelect.value));
 
   if(_daysUnsub) _daysUnsub();
   const daysQ = query(collection(db,'businessDays'), orderBy('ts','desc'), limit(60));
@@ -314,12 +425,15 @@ function startDashboard(db, collection, query, where, orderBy, limit, onSnapshot
     const toSelect = _daysCache.find(d=>d.id===prevSelected) ? prevSelected : (_daysCache[0] ? _daysCache[0].id : '');
     daySelect.value = toSelect;
     updateDayBadge(toSelect);
-    if(toSelect) loadDay(db, collection, query, where, onSnapshot, toSelect);
+    if(toSelect) loadDay(db, fns, toSelect);
   }, (err)=>{
     statusDot.className = 'status-dot off';
     statusTxt.textContent = 'في مشكلة في الاتصال';
     console.warn(err);
   });
+
+  startReports(db, fns);
+  startInventory(db, fns);
 }
 
 function updateDayBadge(dayId){
@@ -330,7 +444,8 @@ function updateDayBadge(dayId){
   else { badge.className='day-status-badge open'; badge.textContent='مفتوح الآن'; }
 }
 
-function loadDay(db, collection, query, where, onSnapshot, bdId){
+function loadDay(db, fns, bdId){
+  const { collection, query, where, onSnapshot } = fns;
   updateDayBadge(bdId);
   if(_ordersUnsub) _ordersUnsub();
   if(_expensesUnsub) _expensesUnsub();
@@ -438,6 +553,230 @@ function renderShifts(shifts){
       ` : ''}
     </div>`;
   }).join('');
+}
+
+/* ============ تبويب التقارير والإحصائيات ============ */
+let _reportOrdersUnsub = null, _reportExpensesUnsub = null;
+let _menuCatalog = []; // كل أصناف المنيو (متزامنة من الكاشير) — بتتحمل مرة واحدة
+let _peakChart = null, _topSellersChart = null;
+let _reportPeriodMode = 'day'; // 'day' | 'month'
+
+function todayIso(){
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function currentMonthIso(){
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+}
+
+async function startReports(db, fns){
+  const { doc, getDoc, collection, query, where, onSnapshot } = fns;
+
+  // تحميل كتالوج المنيو الكامل مرة واحدة (لمقارنة الأصناف الراكدة بيه)
+  try{
+    const menuSnap = await getDoc(doc(db, 'settings', 'menu'));
+    _menuCatalog = menuSnap.exists() ? (menuSnap.data().items || []) : [];
+  }catch(e){ console.warn('تعذر تحميل كتالوج المنيو', e); }
+
+  const dateInput = document.getElementById('periodDateInput');
+  const monthInput = document.getElementById('periodMonthInput');
+  dateInput.value = todayIso();
+  monthInput.value = currentMonthIso();
+
+  document.getElementById('periodDayBtn').addEventListener('click', ()=>{
+    _reportPeriodMode = 'day';
+    document.getElementById('periodDayBtn').classList.add('active');
+    document.getElementById('periodMonthBtn').classList.remove('active');
+    dateInput.style.display = ''; monthInput.style.display = 'none';
+    loadReportPeriod(db, fns);
+  });
+  document.getElementById('periodMonthBtn').addEventListener('click', ()=>{
+    _reportPeriodMode = 'month';
+    document.getElementById('periodMonthBtn').classList.add('active');
+    document.getElementById('periodDayBtn').classList.remove('active');
+    dateInput.style.display = 'none'; monthInput.style.display = '';
+    loadReportPeriod(db, fns);
+  });
+  dateInput.addEventListener('change', ()=> loadReportPeriod(db, fns));
+  monthInput.addEventListener('change', ()=> loadReportPeriod(db, fns));
+
+  loadReportPeriod(db, fns);
+}
+
+function loadReportPeriod(db, fns){
+  const { collection, query, where, onSnapshot } = fns;
+  if(_reportOrdersUnsub) _reportOrdersUnsub();
+  if(_reportExpensesUnsub) _reportExpensesUnsub();
+
+  let startKey, endKey;
+  if(_reportPeriodMode === 'day'){
+    const d = document.getElementById('periodDateInput').value || todayIso();
+    startKey = d; endKey = d;
+  } else {
+    const m = document.getElementById('periodMonthInput').value || currentMonthIso(); // 'YYYY-MM'
+    startKey = m + '-01';
+    endKey = m + '-31'; // مقارنة نصية على تاريخ ISO بتشتغل صح حتى لو الشهر أقصر من 31 يوم
+  }
+
+  let ordersData = [], expensesData = [];
+
+  const ordersQ = query(collection(db,'orders'), where('dateKey','>=',startKey), where('dateKey','<=',endKey));
+  _reportOrdersUnsub = onSnapshot(ordersQ, (snap)=>{
+    ordersData = [];
+    snap.forEach(d=>{ const v = d.data(); if(!v.deleted) ordersData.push(v); });
+    renderReports(ordersData, expensesData);
+  });
+
+  const expensesQ = query(collection(db,'expenses'), where('dateKey','>=',startKey), where('dateKey','<=',endKey));
+  _reportExpensesUnsub = onSnapshot(expensesQ, (snap)=>{
+    expensesData = [];
+    snap.forEach(d=>{ const v = d.data(); if(!v.deleted) expensesData.push(v); });
+    renderReports(ordersData, expensesData);
+  });
+}
+
+function renderReports(orders, expenses){
+  const paid = orders.filter(o=>!o.owner);
+  const gross = orders.reduce((s,o)=>s+(o.subTotal||0),0);
+  const net = paid.reduce((s,o)=>s+(o.total||0),0);
+  const expTotal = expenses.reduce((s,e)=>s+(e.amount||0),0);
+  const profit = net - expTotal;
+
+  document.getElementById('rGross').textContent = fmt2(gross);
+  document.getElementById('rProfit').textContent = fmt2(profit);
+  document.getElementById('rExp').textContent = fmt2(expTotal);
+  document.getElementById('rCount').textContent = orders.length;
+
+  // أكتر الأوقات زحمة (عدد الفواتير حسب الساعة)
+  const hourCounts = new Array(24).fill(0);
+  orders.forEach(o=>{
+    if(o.ts){ const h = new Date(o.ts).getHours(); hourCounts[h]++; }
+  });
+  const hourLabels = Array.from({length:24}, (_,h)=> String(h).padStart(2,'0')+':00');
+  renderPeakHoursChart(hourLabels, hourCounts);
+
+  // أكتر الأصناف مبيعاً + الأصناف الراكدة
+  const itemQty = {};
+  orders.forEach(o=>{
+    (o.items||[]).forEach(i=>{
+      itemQty[i.name] = (itemQty[i.name]||0) + (i.qty||1);
+    });
+  });
+  const sortedItems = Object.entries(itemQty).sort((a,b)=>b[1]-a[1]);
+  const top10 = sortedItems.slice(0,10);
+  renderTopSellersChart(top10.map(x=>x[0]), top10.map(x=>x[1]));
+
+  const soldNames = new Set(Object.keys(itemQty));
+  const slowMovers = _menuCatalog.filter(item => !soldNames.has(item.name));
+  renderSlowMovers(slowMovers);
+}
+
+function renderPeakHoursChart(labels, data){
+  const ctx = document.getElementById('peakHoursChart');
+  if(_peakChart) _peakChart.destroy();
+  _peakChart = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [{ label: 'عدد الفواتير', data, backgroundColor: '#f97316', borderRadius: 4 }] },
+    options: {
+      responsive:true,
+      plugins:{ legend:{ display:false } },
+      scales:{ y:{ beginAtZero:true, ticks:{ precision:0 } } }
+    }
+  });
+}
+
+function renderTopSellersChart(labels, data){
+  const ctx = document.getElementById('topSellersChart');
+  if(_topSellersChart) _topSellersChart.destroy();
+  _topSellersChart = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets: [{ label: 'الكمية المباعة', data, backgroundColor: '#4aae35', borderRadius: 4 }] },
+    options: {
+      indexAxis: 'y',
+      responsive:true,
+      plugins:{ legend:{ display:false } },
+      scales:{ x:{ beginAtZero:true, ticks:{ precision:0 } } }
+    }
+  });
+}
+
+function renderSlowMovers(items){
+  const box = document.getElementById('slowMoversList');
+  const empty = document.getElementById('slowMoversEmpty');
+  if(!_menuCatalog.length){
+    box.innerHTML = '';
+    empty.style.display = 'block';
+    empty.textContent = 'لسه المنيو معملوش مزامنة من الكاشير. افتح الكاشير مرة وسيبه شغال وهيتزامن أوتوماتيك.';
+    return;
+  }
+  if(!items.length){
+    box.innerHTML = '';
+    empty.style.display = 'block';
+    empty.textContent = 'كل أصناف المنيو اتباعت خلال الفترة دي 👏';
+    return;
+  }
+  empty.style.display = 'none';
+  box.innerHTML = items.map(i => `<span class="slow-chip">${i.name}</span>`).join('');
+}
+
+/* ============ تبويب المخزون ============ */
+function startInventory(db, fns){
+  const { doc, onSnapshot } = fns;
+  onSnapshot(doc(db, 'settings', 'inventory'), (snap)=>{
+    const items = snap.exists() ? (snap.data().items || []) : [];
+    renderInventory(items);
+  }, (err)=>{ console.warn('تعذر تحميل المخزون', err); });
+}
+
+function stockStatus(item){
+  const qty = parseFloat(item.currentQty) || 0;
+  const min = parseFloat(item.minQty) || 0;
+  if(qty <= 0) return { cls:'stock-out', label:'خلص خالص' };
+  if(min > 0 && qty <= min) return { cls:'stock-low', label:'قرب يخلص' };
+  return { cls:'stock-ok', label:'متوفر' };
+}
+
+function renderInventory(items){
+  const body = document.getElementById('inventoryBody');
+  const empty = document.getElementById('inventoryEmpty');
+  const banner = document.getElementById('lowStockBanner');
+  const lowList = document.getElementById('lowStockList');
+
+  if(!items.length){
+    body.innerHTML = '';
+    empty.style.display = 'block';
+    banner.style.display = 'none';
+    return;
+  }
+  empty.style.display = 'none';
+
+  const sorted = [...items].sort((a,b)=>{
+    const sa = stockStatus(a).cls === 'stock-ok' ? 1 : 0;
+    const sb = stockStatus(b).cls === 'stock-ok' ? 1 : 0;
+    return sa - sb; // الأصناف المنخفضة/الخالصة الأول
+  });
+
+  body.innerHTML = sorted.map(item=>{
+    const st = stockStatus(item);
+    return `<tr>
+      <td>${item.name}</td>
+      <td>${fmt2(item.currentQty)} ${item.unit||''}</td>
+      <td>${fmt2(item.minQty||0)} ${item.unit||''}</td>
+      <td><span class="pill ${st.cls}">${st.label}</span></td>
+    </tr>`;
+  }).join('');
+
+  const lowItems = items.filter(i => stockStatus(i).cls !== 'stock-ok');
+  if(lowItems.length){
+    banner.style.display = 'block';
+    lowList.innerHTML = lowItems.map(i=>{
+      const st = stockStatus(i);
+      return `<span class="slow-chip" style="border-color:${st.cls==='stock-out'?'#c0392b':'#ea580c'}; color:${st.cls==='stock-out'?'#c0392b':'#ea580c'};">${i.name} (${fmt2(i.currentQty)} ${i.unit||''})</span>`;
+    }).join('');
+  } else {
+    banner.style.display = 'none';
+  }
 }
 </script>
 </body>
