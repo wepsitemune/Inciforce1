@@ -161,11 +161,36 @@ tbody tr:hover{background:var(--surface-2);}
 .slow-chip{
   background:var(--surface-2); border:1px solid var(--line); border-radius:999px; padding:5px 12px; font-size:12px; color:var(--cream-dim);
 }
+
+/* ---------- محرر المنيو ---------- */
+.menu-cat-card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:14px; margin-bottom:14px;}
+.menu-cat-top{display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px;}
+.menu-cat-top input.cat-name{font-size:15px; font-weight:800; border:1px solid transparent; background:none; color:var(--cream); font-family:inherit; padding:4px 6px; border-radius:6px; flex:1;}
+.menu-cat-top input.cat-name:focus{border-color:var(--line); background:var(--surface-2);}
+.menu-cat-top input.cat-emoji{width:44px; text-align:center; border:1px solid var(--line); border-radius:6px; padding:4px; font-family:inherit;}
+.icon-btn{border:1px solid var(--line); background:var(--surface); color:var(--muted); border-radius:8px; padding:5px 9px; cursor:pointer; font-size:12px; font-family:inherit;}
+.icon-btn.danger{color:var(--danger); border-color:#f3c8be;}
+.menu-group-box{border:1px dashed var(--line); border-radius:10px; padding:10px; margin-bottom:8px;}
+.menu-group-top{display:flex; align-items:center; gap:8px; margin-bottom:8px;}
+.menu-group-top input.grp-name{flex:1; border:1px solid var(--line); border-radius:6px; padding:5px 8px; font-family:inherit; font-size:12.5px; background:var(--surface-2); color:var(--cream);}
+.menu-item-row{display:flex; align-items:center; gap:6px; margin-bottom:6px;}
+.menu-item-row input.item-name{flex:1; border:1px solid var(--line); border-radius:6px; padding:5px 8px; font-family:inherit; font-size:12.5px;}
+.menu-item-row input.item-price{width:80px; border:1px solid var(--line); border-radius:6px; padding:5px 8px; font-family:inherit; font-size:12.5px;}
+.add-item-row{display:flex; gap:6px; margin-top:6px;}
+.add-item-row input{flex:1; border:1px solid var(--line); border-radius:6px; padding:6px 8px; font-family:inherit; font-size:12.5px;}
+.add-item-row input.price-mini{max-width:80px; flex:none;}
+
+/* ---------- الموظفين ---------- */
+.staff-card{background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:8px;}
+.staff-card .top{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;}
+.staff-card .top b{font-size:14px;}
+.staff-card .top span{font-size:11.5px; color:var(--muted);}
+.staff-perms{display:flex; flex-wrap:wrap; gap:12px;}
+.staff-perms label{display:flex; align-items:center; gap:6px; cursor:pointer; font-size:12.5px; color:var(--cream-dim);}
 </style>
 </head>
 <body>
 
-<!-- ============ شاشة لو مفيش إعدادات Firebase متحطة ============ -->
 <div id="noConfigScreen" style="display:none;">
   <div class="config-warning">
     لسه معملتش ربط بين الموقع ده وبيانات Firebase.<br><br>
@@ -174,7 +199,6 @@ tbody tr:hover{background:var(--surface-2);}
   </div>
 </div>
 
-<!-- ============ شاشة تسجيل الدخول ============ -->
 <div id="loginScreen">
   <div class="login-box">
     <h1>أنيسيفورس كافي</h1>
@@ -192,7 +216,6 @@ tbody tr:hover{background:var(--surface-2);}
   </div>
 </div>
 
-<!-- ============ الواجهة الرئيسية ============ -->
 <div id="app">
   <div class="wrap">
     <div class="topbar">
@@ -207,9 +230,10 @@ tbody tr:hover{background:var(--surface-2);}
       <button class="tab-btn active" id="tabBtnMonitor">🔴 متابعة لحظية</button>
       <button class="tab-btn" id="tabBtnReports">📊 تقارير وإحصائيات</button>
       <button class="tab-btn" id="tabBtnInventory">📦 المخزون</button>
+      <button class="tab-btn" id="tabBtnMenu">🍽️ المنيو والأسعار</button>
+      <button class="tab-btn" id="tabBtnStaff">👥 الموظفين وسجل العمليات</button>
     </div>
 
-    <!-- ============ تبويب: المتابعة اللحظية ============ -->
     <div class="tab-panel active" id="tabMonitor">
       <div class="day-select-row">
         <label>يوم العمل:</label>
@@ -252,7 +276,6 @@ tbody tr:hover{background:var(--surface-2);}
       </div>
     </div>
 
-    <!-- ============ تبويب: التقارير والإحصائيات ============ -->
     <div class="tab-panel" id="tabReports">
       <div class="period-row">
         <label>الفترة:</label>
@@ -288,7 +311,6 @@ tbody tr:hover{background:var(--surface-2);}
       </div>
     </div>
 
-    <!-- ============ تبويب: المخزون ============ -->
     <div class="tab-panel" id="tabInventory">
       <div id="lowStockBanner" style="display:none;" class="chart-box" >
         <h3 style="color:var(--danger);">⚠️ أصناف قربت تخلص أو خلصت خالص</h3>
@@ -304,6 +326,67 @@ tbody tr:hover{background:var(--surface-2);}
           <tbody id="inventoryBody"></tbody>
         </table>
         <div class="empty-note" id="inventoryEmpty" style="display:none;">لسه المخزون معملوش مزامنة من الكاشير. افتح الكاشير وسيبه شغال وهيتزامن أوتوماتيك.</div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="tabMenu">
+      <div class="chart-box">
+        <h3>إضافة قسم جديد</h3>
+        <div class="day-select-row" style="margin-bottom:0;">
+          <input type="text" id="newCatEmojiInput" placeholder="إيموجي (اختياري)" style="max-width:90px;">
+          <input type="text" id="newCatNameInput" placeholder="اسم القسم">
+          <button class="btn" style="width:auto; padding:9px 16px;" id="addCatDashBtn">إضافة القسم</button>
+        </div>
+      </div>
+
+      <div class="chart-box" style="margin-bottom: 14px;">
+        <div class="day-select-row" style="margin-bottom:0;">
+          <input type="text" id="menuSearchInput" placeholder="🔍 ابحث عن أي صنف في المنيو..." style="width:100%;">
+        </div>
+      </div>
+
+      <div id="menuEditorBox"></div>
+    </div>
+
+    <div class="tab-panel" id="tabStaff">
+      <div class="chart-box">
+        <h3>إضافة حساب موظف جديد</h3>
+        <div class="day-select-row" style="margin-bottom:8px;">
+          <input type="text" id="newStaffUsername" placeholder="اسم المستخدم (تسجيل الدخول)">
+          <input type="text" id="newStaffPassword" placeholder="كلمة المرور">
+        </div>
+        <div class="day-select-row" style="margin-bottom:8px;">
+          <input type="text" id="newStaffName" placeholder="اسم الموظف اللي بيظهر في الفواتير">
+        </div>
+        <div style="display:flex; flex-wrap:wrap; gap:12px; margin-bottom:10px;">
+          <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px;">
+            <input type="checkbox" id="newStaffPermSales"> المبيعات
+          </label>
+          <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px;">
+            <input type="checkbox" id="newStaffPermExpenses"> المصروفات
+          </label>
+          <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px;">
+            <input type="checkbox" id="newStaffPermCashDiscount"> خصم الكاش
+          </label>
+          <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px;">
+            <input type="checkbox" id="newStaffPermOwnerDiscount"> خصم الأونر
+          </label>
+        </div>
+        <button class="btn" style="width:auto; padding:9px 16px;" id="addStaffBtn">إضافة الحساب</button>
+      </div>
+
+      <div class="section-title">حسابات الموظفين وصلاحياتهم</div>
+      <div id="staffListBox"></div>
+
+      <div class="section-title">سجل العمليات الحساسة (حذف فواتير / مصروفات)</div>
+      <div class="panel">
+        <table>
+          <thead><tr>
+            <th>الوقت</th><th>نوع العملية</th><th>التفاصيل</th><th>مين عمل العملية</th>
+          </tr></thead>
+          <tbody id="auditLogBody"></tbody>
+        </table>
+        <div class="empty-note" id="auditLogEmpty" style="display:none;">لا توجد عمليات حذف مسجلة</div>
       </div>
     </div>
   </div>
@@ -346,7 +429,7 @@ async function init(){
   const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
   const { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } =
     await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
-  const { getFirestore, collection, query, where, orderBy, limit, onSnapshot, doc, getDoc } =
+  const { getFirestore, collection, query, where, orderBy, limit, onSnapshot, doc, getDoc, setDoc, serverTimestamp } =
     await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
 
   const app = initializeApp(FIREBASE_CONFIG);
@@ -377,7 +460,7 @@ async function init(){
     if(user){
       loginScreen.style.display = 'none';
       appEl.style.display = 'block';
-      startDashboard(db, { collection, query, where, orderBy, limit, onSnapshot, doc, getDoc });
+      startDashboard(db, { collection, query, where, orderBy, limit, onSnapshot, doc, getDoc, setDoc, serverTimestamp });
     } else {
       appEl.style.display = 'none';
       loginScreen.style.display = 'flex';
@@ -389,13 +472,19 @@ async function init(){
 document.getElementById('tabBtnMonitor').addEventListener('click', ()=> switchTab('monitor'));
 document.getElementById('tabBtnReports').addEventListener('click', ()=> switchTab('reports'));
 document.getElementById('tabBtnInventory').addEventListener('click', ()=> switchTab('inventory'));
+document.getElementById('tabBtnMenu').addEventListener('click', ()=> switchTab('menu'));
+document.getElementById('tabBtnStaff').addEventListener('click', ()=> switchTab('staff'));
 function switchTab(which){
   document.getElementById('tabBtnMonitor').classList.toggle('active', which==='monitor');
   document.getElementById('tabBtnReports').classList.toggle('active', which==='reports');
   document.getElementById('tabBtnInventory').classList.toggle('active', which==='inventory');
+  document.getElementById('tabBtnMenu').classList.toggle('active', which==='menu');
+  document.getElementById('tabBtnStaff').classList.toggle('active', which==='staff');
   document.getElementById('tabMonitor').classList.toggle('active', which==='monitor');
   document.getElementById('tabReports').classList.toggle('active', which==='reports');
   document.getElementById('tabInventory').classList.toggle('active', which==='inventory');
+  document.getElementById('tabMenu').classList.toggle('active', which==='menu');
+  document.getElementById('tabStaff').classList.toggle('active', which==='staff');
 }
 
 /* ============ تبويب المتابعة اللحظية ============ */
@@ -434,6 +523,8 @@ function startDashboard(db, fns){
 
   startReports(db, fns);
   startInventory(db, fns);
+  startMenuSync(db, fns);
+  startStaff(db, fns);
 }
 
 function updateDayBadge(dayId){
@@ -573,12 +664,6 @@ function currentMonthIso(){
 async function startReports(db, fns){
   const { doc, getDoc, collection, query, where, onSnapshot } = fns;
 
-  // تحميل كتالوج المنيو الكامل مرة واحدة (لمقارنة الأصناف الراكدة بيه)
-  try{
-    const menuSnap = await getDoc(doc(db, 'settings', 'menu'));
-    _menuCatalog = menuSnap.exists() ? (menuSnap.data().items || []) : [];
-  }catch(e){ console.warn('تعذر تحميل كتالوج المنيو', e); }
-
   const dateInput = document.getElementById('periodDateInput');
   const monthInput = document.getElementById('periodMonthInput');
   dateInput.value = todayIso();
@@ -616,7 +701,7 @@ function loadReportPeriod(db, fns){
   } else {
     const m = document.getElementById('periodMonthInput').value || currentMonthIso(); // 'YYYY-MM'
     startKey = m + '-01';
-    endKey = m + '-31'; // مقارنة نصية على تاريخ ISO بتشتغل صح حتى لو الشهر أقصر من 31 يوم
+    endKey = m + '-31'; 
   }
 
   let ordersData = [], expensesData = [];
@@ -648,7 +733,6 @@ function renderReports(orders, expenses){
   document.getElementById('rExp').textContent = fmt2(expTotal);
   document.getElementById('rCount').textContent = orders.length;
 
-  // أكتر الأوقات زحمة (عدد الفواتير حسب الساعة)
   const hourCounts = new Array(24).fill(0);
   orders.forEach(o=>{
     if(o.ts){ const h = new Date(o.ts).getHours(); hourCounts[h]++; }
@@ -656,7 +740,6 @@ function renderReports(orders, expenses){
   const hourLabels = Array.from({length:24}, (_,h)=> String(h).padStart(2,'0')+':00');
   renderPeakHoursChart(hourLabels, hourCounts);
 
-  // أكتر الأصناف مبيعاً + الأصناف الراكدة
   const itemQty = {};
   orders.forEach(o=>{
     (o.items||[]).forEach(i=>{
@@ -754,7 +837,7 @@ function renderInventory(items){
   const sorted = [...items].sort((a,b)=>{
     const sa = stockStatus(a).cls === 'stock-ok' ? 1 : 0;
     const sb = stockStatus(b).cls === 'stock-ok' ? 1 : 0;
-    return sa - sb; // الأصناف المنخفضة/الخالصة الأول
+    return sa - sb; 
   });
 
   body.innerHTML = sorted.map(item=>{
@@ -778,6 +861,357 @@ function renderInventory(items){
     banner.style.display = 'none';
   }
 }
+
+/* ============ تبويب المنيو والأسعار ============ */
+let _menuDb = null, _menuFns = null;
+let _menuNested = []; 
+let _suppressMenuRender = false; 
+
+function flattenMenu(menu){
+  const flat = [];
+  (menu||[]).forEach(catObj=>{
+    (catObj.groups||[]).forEach(grp=>{
+      (grp.items||[]).forEach(it=>{
+        flat.push({ name: it[0], price: it[1], cat: catObj.label, group: grp.g });
+      });
+    });
+  });
+  return flat;
+}
+
+function startMenuSync(db, fns){
+  _menuDb = db; _menuFns = fns;
+  const { doc, onSnapshot } = fns;
+  onSnapshot(doc(db, 'settings', 'menu'), (snap)=>{
+    if(!snap.exists()) return;
+    const raw = snap.data().menu || [];
+    const menu = raw.map(cat => ({
+      ...cat,
+      groups: (cat.groups||[]).map(g => ({
+        ...g,
+        items: (g.items||[]).map(it => Array.isArray(it) ? it : [it.name, it.price])
+      }))
+    }));
+    _menuCatalog = flattenMenu(menu);
+    if(!_suppressMenuRender){
+      _menuNested = menu;
+      renderMenuEditor();
+    }
+  }, (err)=> console.warn('تعذر تحميل المنيو', err));
+
+  // ربط حدث البحث في المنيو
+  document.getElementById('menuSearchInput').addEventListener('input', ()=> {
+    renderMenuEditor();
+  });
+}
+
+function pushMenuToCloud(){
+  if(!_menuDb || !_menuFns) return;
+  const { doc, setDoc, serverTimestamp } = _menuFns;
+  _suppressMenuRender = true;
+  const safeMenu = (_menuNested||[]).map(cat => ({
+    ...cat,
+    groups: (cat.groups||[]).map(g => ({
+      ...g,
+      items: (g.items||[]).map(it => Array.isArray(it) ? { name: it[0], price: it[1] } : it)
+    }))
+  }));
+  setDoc(doc(_menuDb, 'settings', 'menu'), {
+    menu: safeMenu, updatedAt: serverTimestamp(), updatedBy: 'dashboard'
+  }).finally(()=>{ setTimeout(()=>{ _suppressMenuRender = false; }, 800); });
+}
+
+function renderMenuEditor(){
+  const box = document.getElementById('menuEditorBox');
+  if(!_menuNested.length){
+    box.innerHTML = '<div class="panel"><div class="empty-note">لسه المنيو معملوش مزامنة من الكاشير. افتح الكاشير وسيبه شغال وهيتزامن أوتوماتيك.</div></div>';
+    return;
+  }
+
+  const searchTerm = (document.getElementById('menuSearchInput')?.value || '').trim().toLowerCase();
+
+  // فلترة الأقسام والمجموعات والأصناف بناءً على نص البحث
+  let filteredCategories = _menuNested.map((catObj, cIdx) => {
+    let filteredGroups = (catObj.groups || []).map((grp, gIdx) => {
+      let filteredItems = (grp.items || []).map((it, iIdx) => {
+        return { item: it, originalIndex: iIdx };
+      }).filter(itemObj => {
+        if (!searchTerm) return true;
+        return itemObj.item[0].toLowerCase().includes(searchTerm);
+      });
+
+      return { group: grp, originalGroupIndex: gIdx, items: filteredItems };
+    }).filter(grpObj => {
+      if (!searchTerm) return true;
+      // إذا كانت المجموعة نفسها مطابقة للبحث أو بها أصناف مطابقة
+      const groupMatches = grpObj.group.g.toLowerCase().includes(searchTerm);
+      return groupMatches || grpObj.items.length > 0;
+    });
+
+    return { cat: catObj, originalCatIndex: cIdx, groups: filteredGroups };
+  }).filter(catObj => {
+    if (!searchTerm) return true;
+    const catMatches = catObj.cat.label.toLowerCase().includes(searchTerm);
+    return catMatches || catObj.groups.length > 0;
+  });
+
+  if(filteredCategories.length === 0){
+    box.innerHTML = '<div class="panel"><div class="empty-note">لا توجد نتائج مطابقة للبحث</div></div>';
+    return;
+  }
+
+  box.innerHTML = filteredCategories.map(catWrapper => {
+    const catObj = catWrapper.cat;
+    const cIdx = catWrapper.originalCatIndex;
+
+    return `
+    <div class="menu-cat-card" data-cat="${cIdx}">
+      <div class="menu-cat-top">
+        <input type="text" class="cat-emoji" value="${catObj.emoji||''}" data-role="cat-emoji">
+        <input type="text" class="cat-name" value="${catObj.label}" data-role="cat-name">
+        <button class="icon-btn danger" data-role="del-cat" title="حذف القسم">🗑️ حذف القسم</button>
+      </div>
+      ${catWrapper.groups.map(grpWrapper => {
+        const grp = grpWrapper.group;
+        const gIdx = grpWrapper.originalGroupIndex;
+
+        return `
+        <div class="menu-group-box" data-group="${gIdx}">
+          <div class="menu-group-top">
+            <input type="text" class="grp-name" value="${grp.g}" data-role="grp-name">
+            <button class="icon-btn danger" data-role="del-grp" title="حذف المجموعة">🗑️</button>
+          </div>
+          ${grpWrapper.items.map(itemObj => {
+            const it = itemObj.item;
+            const iIdx = itemObj.originalIndex;
+
+            return `
+            <div class="menu-item-row" data-item="${iIdx}">
+              <input type="text" class="item-name" value="${it[0]}" data-role="item-name">
+              <input type="number" step="any" class="item-price" value="${it[1]}" data-role="item-price">
+              <button class="icon-btn danger" data-role="del-item" title="حذف الصنف">🗑️</button>
+            </div>`;
+          }).join('')}
+          <div class="add-item-row">
+            <input type="text" placeholder="اسم صنف جديد" data-role="new-item-name">
+            <input type="number" step="any" placeholder="السعر" class="price-mini" data-role="new-item-price">
+            <button class="icon-btn" data-role="add-item">➕ إضافة صنف</button>
+          </div>
+        </div>`;
+      }).join('')}
+      <div class="add-item-row">
+        <input type="text" placeholder="اسم مجموعة جديدة" data-role="new-grp-name">
+        <button class="icon-btn" data-role="add-grp">➕ إضافة مجموعة</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  // ربط الأحداث
+  box.querySelectorAll('.menu-cat-card').forEach(catEl=>{
+    const cIdx = parseInt(catEl.dataset.cat);
+
+    catEl.querySelector('[data-role="cat-name"]').addEventListener('change', (e)=>{
+      _menuNested[cIdx].label = e.target.value.trim() || _menuNested[cIdx].label;
+      pushMenuToCloud();
+    });
+    catEl.querySelector('[data-role="cat-emoji"]').addEventListener('change', (e)=>{
+      _menuNested[cIdx].emoji = e.target.value.trim() || '🍽️';
+      pushMenuToCloud();
+    });
+    catEl.querySelector('[data-role="del-cat"]').addEventListener('click', ()=>{
+      if(_menuNested.length<=1){ alert('لازم يفضل قسم واحد على الأقل'); return; }
+      if(!confirm(`متأكد من حذف قسم "${_menuNested[cIdx].label}" بكل مجموعاته وأصنافه؟`)) return;
+      _menuNested.splice(cIdx,1);
+      pushMenuToCloud();
+      renderMenuEditor();
+    });
+    catEl.querySelector('[data-role="add-grp"]').addEventListener('click', ()=>{
+      const inp = catEl.querySelector('[data-role="new-grp-name"]');
+      const name = inp.value.trim();
+      if(!name) return;
+      if(!_menuNested[cIdx].groups) _menuNested[cIdx].groups = [];
+      _menuNested[cIdx].groups.push({ g:name, items:[] });
+      pushMenuToCloud();
+      renderMenuEditor();
+    });
+
+    catEl.querySelectorAll('.menu-group-box').forEach(grpEl=>{
+      const gIdx = parseInt(grpEl.dataset.group);
+
+      grpEl.querySelector('[data-role="grp-name"]').addEventListener('change', (e)=>{
+        _menuNested[cIdx].groups[gIdx].g = e.target.value.trim() || _menuNested[cIdx].groups[gIdx].g;
+        pushMenuToCloud();
+      });
+      grpEl.querySelector('[data-role="del-grp"]').addEventListener('click', ()=>{
+        if(!confirm('متأكد من حذف المجموعة دي بكل أصنافها؟')) return;
+        _menuNested[cIdx].groups.splice(gIdx,1);
+        pushMenuToCloud();
+        renderMenuEditor();
+      });
+      grpEl.querySelector('[data-role="add-item"]').addEventListener('click', ()=>{
+        const nameInp = grpEl.querySelector('[data-role="new-item-name"]');
+        const priceInp = grpEl.querySelector('[data-role="new-item-price"]');
+        const name = nameInp.value.trim();
+        const price = parseFloat(priceInp.value);
+        if(!name || isNaN(price)){ alert('اكتب اسم الصنف والسعر'); return; }
+        _menuNested[cIdx].groups[gIdx].items.push([name, price]);
+        pushMenuToCloud();
+        renderMenuEditor();
+      });
+
+      grpEl.querySelectorAll('.menu-item-row').forEach(itemEl=>{
+        const iIdx = parseInt(itemEl.dataset.item);
+        itemEl.querySelector('[data-role="item-name"]').addEventListener('change', (e)=>{
+          _menuNested[cIdx].groups[gIdx].items[iIdx][0] = e.target.value.trim();
+          pushMenuToCloud();
+        });
+        itemEl.querySelector('[data-role="item-price"]').addEventListener('change', (e)=>{
+          const val = parseFloat(e.target.value);
+          _menuNested[cIdx].groups[gIdx].items[iIdx][1] = isNaN(val) ? 0 : val;
+          pushMenuToCloud();
+        });
+        itemEl.querySelector('[data-role="del-item"]').addEventListener('click', ()=>{
+          _menuNested[cIdx].groups[gIdx].items.splice(iIdx,1);
+          pushMenuToCloud();
+          renderMenuEditor();
+        });
+      });
+    });
+  });
+}
+
+document.getElementById('addCatDashBtn').addEventListener('click', ()=>{
+  const emojiInp = document.getElementById('newCatEmojiInput');
+  const nameInp = document.getElementById('newCatNameInput');
+  const name = nameInp.value.trim();
+  if(!name){ alert('اكتب اسم القسم'); return; }
+  const emoji = emojiInp.value.trim() || '🍽️';
+  _menuNested.push({ cat: 'cat_' + Date.now(), label:name, emoji, groups:[] });
+  pushMenuToCloud();
+  renderMenuEditor();
+  nameInp.value = ''; emojiInp.value = '';
+});
+
+/* ============ تبويب الموظفين وسجل العمليات ============ */
+let _staffDb = null, _staffFns = null;
+let _accounts = [];
+let _suppressAccountsRender = false;
+
+function startStaff(db, fns){
+  _staffDb = db; _staffFns = fns;
+  const { doc, onSnapshot, collection, query, orderBy, limit } = fns;
+
+  onSnapshot(doc(db, 'settings', 'accounts'), (snap)=>{
+    if(!snap.exists()) return;
+    if(_suppressAccountsRender) return;
+    _accounts = snap.data().accounts || [];
+    renderStaffList();
+  }, (err)=> console.warn('تعذر تحميل حسابات الموظفين', err));
+
+  const auditQ = query(collection(db,'auditLog'), orderBy('ts','desc'), limit(100));
+  onSnapshot(auditQ, (snap)=>{
+    const rows = [];
+    snap.forEach(d=> rows.push(d.data()));
+    renderAuditLog(rows);
+  }, (err)=> console.warn('تعذر تحميل سجل العمليات', err));
+
+  document.getElementById('addStaffBtn').addEventListener('click', ()=>{
+    const username = document.getElementById('newStaffUsername').value.trim();
+    const password = document.getElementById('newStaffPassword').value;
+    const cashierName = document.getElementById('newStaffName').value.trim();
+    if(!username || !password || !cashierName){ alert('اكتب اسم المستخدم وكلمة المرور واسم الموظف'); return; }
+    if(_accounts.find(a=>a.username===username)){ alert('اسم المستخدم ده موجود بالفعل'); return; }
+    _accounts.push({
+      username, password, cashierName,
+      permissions: {
+        sales: document.getElementById('newStaffPermSales').checked,
+        expenses: document.getElementById('newStaffPermExpenses').checked,
+        cashDiscount: document.getElementById('newStaffPermCashDiscount').checked,
+        ownerDiscount: document.getElementById('newStaffPermOwnerDiscount').checked
+      }
+    });
+    pushAccountsToCloud();
+    renderStaffList();
+    document.getElementById('newStaffUsername').value = '';
+    document.getElementById('newStaffPassword').value = '';
+    document.getElementById('newStaffName').value = '';
+    ['newStaffPermSales','newStaffPermExpenses','newStaffPermCashDiscount','newStaffPermOwnerDiscount'].forEach(id=> document.getElementById(id).checked=false);
+  });
+}
+
+function pushAccountsToCloud(){
+  if(!_staffDb || !_staffFns) return;
+  const { doc, setDoc, serverTimestamp } = _staffFns;
+  _suppressAccountsRender = true;
+  setDoc(doc(_staffDb, 'settings', 'accounts'), {
+    accounts: _accounts, updatedAt: serverTimestamp(), updatedBy: 'dashboard'
+  }).finally(()=>{ setTimeout(()=>{ _suppressAccountsRender = false; }, 800); });
+}
+
+function renderStaffList(){
+  const box = document.getElementById('staffListBox');
+  if(!_accounts.length){
+    box.innerHTML = '<div class="panel"><div class="empty-note">لسه حسابات الموظفين معملهاش مزامنة من الكاشير.</div></div>';
+    return;
+  }
+  const permLabels = [
+    ['sales','المبيعات'], ['expenses','المصروفات'],
+    ['cashDiscount','خصم الكاش'], ['ownerDiscount','خصم الأونر']
+  ];
+  box.innerHTML = _accounts.map((a, idx)=>{
+    const p = a.permissions || {};
+    return `
+    <div class="staff-card" data-idx="${idx}">
+      <div class="top">
+        <div><b>👤 ${a.cashierName}</b> <span>(${a.username})</span></div>
+        <button class="icon-btn danger" data-role="del-staff">🗑️ حذف الحساب</button>
+      </div>
+      <div class="staff-perms">
+        ${permLabels.map(([key,label])=>`
+          <label>
+            <input type="checkbox" data-perm="${key}" ${p[key]?'checked':''}>
+            ${label}
+          </label>
+        `).join('')}
+      </div>
+    </div>`;
+  }).join('');
+
+  box.querySelectorAll('.staff-card').forEach(card=>{
+    const idx = parseInt(card.dataset.idx);
+    card.querySelector('[data-role="del-staff"]').addEventListener('click', ()=>{
+      if(_accounts.length<=1){ alert('لازم يفضل حساب واحد على الأقل'); return; }
+      if(!confirm(`متأكد من حذف حساب "${_accounts[idx].cashierName}"؟`)) return;
+      _accounts.splice(idx,1);
+      pushAccountsToCloud();
+      renderStaffList();
+    });
+    card.querySelectorAll('[data-perm]').forEach(chk=>{
+      chk.addEventListener('change', (e)=>{
+        if(!_accounts[idx].permissions) _accounts[idx].permissions = {};
+        _accounts[idx].permissions[e.target.dataset.perm] = e.target.checked;
+        pushAccountsToCloud();
+      });
+    });
+  });
+}
+
+function renderAuditLog(rows){
+  const body = document.getElementById('auditLogBody');
+  const empty = document.getElementById('auditLogEmpty');
+  if(!rows.length){ body.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display = 'none';
+  body.innerHTML = rows.map(r=>{
+    const time = r.at ? new Date(r.at).toLocaleString('ar-EG', {dateStyle:'short', timeStyle:'short'}) : '-';
+    return `<tr>
+      <td>${time}</td>
+      <td>${r.type||'-'}</td>
+      <td>${r.summary||'-'}</td>
+      <td>${r.byCashier||'-'} <span style="color:var(--muted); font-size:11px;">(${r.byUsername||'-'})</span></td>
+    </tr>`;
+  }).join('');
+}
 </script>
+
 </body>
 </html>
