@@ -187,6 +187,14 @@ tbody tr:hover{background:var(--surface-2);}
 .staff-card .top span{font-size:11.5px; color:var(--muted);}
 .staff-perms{display:flex; flex-wrap:wrap; gap:12px;}
 .staff-perms label{display:flex; align-items:center; gap:6px; cursor:pointer; font-size:12.5px; color:var(--cream-dim);}
+
+/* ---------- توريد المخزون من الداشبورد ---------- */
+.supply-row{display:flex; gap:6px; align-items:center;}
+.supply-row input{
+  width:90px; border:1px solid var(--line); border-radius:6px; padding:5px 8px;
+  font-family:inherit; font-size:12px; background:var(--surface-2); color:var(--cream);
+}
+.supply-row .supply-btn{white-space:nowrap;}
 </style>
 </head>
 <body>
@@ -321,7 +329,7 @@ tbody tr:hover{background:var(--surface-2);}
       <div class="panel">
         <table>
           <thead><tr>
-            <th>الصنف</th><th>الرصيد الحالي</th><th>الحد الأدنى</th><th>الحالة</th>
+            <th>الصنف</th><th>الرصيد الحالي</th><th>الحد الأدنى</th><th>الحالة</th><th>توريد كمية جديدة</th>
           </tr></thead>
           <tbody id="inventoryBody"></tbody>
         </table>
@@ -804,12 +812,35 @@ function renderSlowMovers(items){
 }
 
 /* ============ تبويب المخزون ============ */
+let _invDb = null, _invFns = null, _invItems = [];
+
 function startInventory(db, fns){
   const { doc, onSnapshot } = fns;
+  _invDb = db; _invFns = fns;
   onSnapshot(doc(db, 'settings', 'inventory'), (snap)=>{
-    const items = snap.exists() ? (snap.data().items || []) : [];
-    renderInventory(items);
+    _invItems = snap.exists() ? (snap.data().items || []) : [];
+    renderInventory(_invItems);
   }, (err)=>{ console.warn('تعذر تحميل المخزون', err); });
+}
+
+// توريد كمية جديدة لصنف من الداشبورد: بتضيف الكمية على الرصيد الحالي وتبعت القايمة كلها تاني للسحابة،
+// وبعدين الكاشير بيسمع التحديث ده لحظياً (زي بالظبط تعديل المنيو أو حسابات الموظفين من هنا).
+function supplyInventoryFromDashboard(itemId, qty){
+  if(!_invDb || !_invFns) return;
+  const { doc, setDoc, serverTimestamp } = _invFns;
+  const updatedItems = (_invItems||[]).map(i=>{
+    if(i.id !== itemId) return i;
+    return { ...i, currentQty: (parseFloat(i.currentQty)||0) + qty };
+  });
+  return setDoc(doc(_invDb, 'settings', 'inventory'), {
+    items: updatedItems, updatedAt: serverTimestamp(), updatedBy: 'dashboard'
+  }).then(()=>{
+    _invItems = updatedItems;
+    renderInventory(_invItems); // تحديث فوري في الواجهة قبل ما الـ snapshot يرجع من السحابة
+  }).catch(err=>{
+    console.warn('فشل توريد الكمية للمخزون', err);
+    alert('حصل خطأ أثناء توريد الكمية، تأكد من الاتصال بالإنترنت وحاول تاني.');
+  });
 }
 
 function stockStatus(item){
@@ -842,13 +873,34 @@ function renderInventory(items){
 
   body.innerHTML = sorted.map(item=>{
     const st = stockStatus(item);
-    return `<tr>
+    return `<tr data-id="${item.id}">
       <td>${item.name}</td>
       <td>${fmt2(item.currentQty)} ${item.unit||''}</td>
       <td>${fmt2(item.minQty||0)} ${item.unit||''}</td>
       <td><span class="pill ${st.cls}">${st.label}</span></td>
+      <td>
+        <div class="supply-row">
+          <input type="number" step="any" inputmode="decimal" class="supply-input" placeholder="الكمية">
+          <button type="button" class="icon-btn supply-btn">➕ توريد</button>
+        </div>
+      </td>
     </tr>`;
   }).join('');
+
+  body.querySelectorAll('tr[data-id]').forEach(row=>{
+    const id = row.dataset.id;
+    const input = row.querySelector('.supply-input');
+    const btn = row.querySelector('.supply-btn');
+    const doSupply = ()=>{
+      const qty = parseFloat(input.value);
+      if(isNaN(qty) || qty<=0){ alert('من فضلك اكتب كمية توريد صحيحة أكبر من صفر'); return; }
+      btn.disabled = true;
+      Promise.resolve(supplyInventoryFromDashboard(id, qty)).finally(()=>{ btn.disabled = false; });
+      input.value = '';
+    };
+    btn.addEventListener('click', doSupply);
+    input.addEventListener('keydown', (e)=>{ if(e.key==='Enter') doSupply(); });
+  });
 
   const lowItems = items.filter(i => stockStatus(i).cls !== 'stock-ok');
   if(lowItems.length){
