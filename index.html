@@ -128,6 +128,32 @@ thead th{
 tbody td{padding:8px 10px; border-top:1px solid var(--line); vertical-align:top;}
 tbody tr:hover{background:var(--surface-2);}
 .empty-note{padding:18px; text-align:center; color:var(--muted); font-size:13px;}
+
+/* ---------- بث الترابيزات (تبويب الداشبورد) ---------- */
+.tables-live-head{
+  display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:16px;
+}
+.status-row{display:flex; align-items:center; gap:6px;}
+.tables-legend{display:flex; gap:16px;}
+.tables-legend span{display:flex; align-items:center; gap:6px; font-size:12.5px; font-weight:700; color:var(--cream-dim);}
+.tables-legend i{width:11px; height:11px; border-radius:50%; display:inline-block;}
+.dot-free{background:var(--ok);}
+.dot-occupied{background:var(--gold-bright);}
+.live-hall-block{margin-bottom:24px;}
+.live-hall-name{font-size:14px; font-weight:800; color:var(--gold-bright); margin:0 0 10px; padding-right:8px; border-right:4px solid var(--gold);}
+.tables-live-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(140px,1fr)); gap:12px;}
+.table-live-card{
+  background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:12px 8px; text-align:center;
+}
+.table-live-card.occupied{
+  border-color:var(--gold); background:linear-gradient(160deg,#fff3e6,#ffe6c8);
+  box-shadow:0 0 0 1px rgba(249,115,22,.15);
+}
+.table-live-card .tl-name{font-weight:800; font-size:14px; color:var(--cream); margin-top:2px;}
+.table-live-card .tl-status{font-size:11px; font-weight:700; color:var(--ok); margin-top:5px;}
+.table-live-card.occupied .tl-status{color:var(--gold-bright);}
+.table-live-card .tl-total{font-size:12.5px; font-weight:800; color:var(--gold-bright); margin-top:3px;}
+.table-live-card .tl-time{font-size:10px; color:var(--muted); margin-top:2px;}
 .pill{
   font-size:10.5px; font-weight:800; padding:2px 8px; border-radius:999px; display:inline-block;
 }
@@ -236,6 +262,7 @@ tbody tr:hover{background:var(--surface-2);}
 
     <div class="tabbar">
       <button class="tab-btn active" id="tabBtnMonitor">🔴 متابعة لحظية</button>
+      <button class="tab-btn" id="tabBtnTables">🪑 بث الترابيزات</button>
       <button class="tab-btn" id="tabBtnReports">📊 تقارير وإحصائيات</button>
       <button class="tab-btn" id="tabBtnInventory">📦 المخزون</button>
       <button class="tab-btn" id="tabBtnMenu">🍽️ المنيو والأسعار</button>
@@ -282,6 +309,20 @@ tbody tr:hover{background:var(--surface-2);}
         </table>
         <div class="empty-note" id="expensesEmpty" style="display:none;">لا توجد مصروفات في هذا اليوم بعد</div>
       </div>
+    </div>
+
+    <div class="tab-panel" id="tabTables">
+      <div class="tables-live-head">
+        <div class="status-row">
+          <span class="status-dot" id="tablesStatusDot"></span>
+          <span class="status-txt" id="tablesStatusTxt">جاري الاتصال...</span>
+        </div>
+        <div class="tables-legend">
+          <span><i class="dot-free"></i> فاضية</span>
+          <span><i class="dot-occupied"></i> عليها طلب مفتوح</span>
+        </div>
+      </div>
+      <div id="tablesLiveBody"><div class="empty-note">جاري التحميل...</div></div>
     </div>
 
     <div class="tab-panel" id="tabReports">
@@ -478,17 +519,20 @@ async function init(){
 
 /* ============ تبديل التبويبات ============ */
 document.getElementById('tabBtnMonitor').addEventListener('click', ()=> switchTab('monitor'));
+document.getElementById('tabBtnTables').addEventListener('click', ()=> switchTab('tables'));
 document.getElementById('tabBtnReports').addEventListener('click', ()=> switchTab('reports'));
 document.getElementById('tabBtnInventory').addEventListener('click', ()=> switchTab('inventory'));
 document.getElementById('tabBtnMenu').addEventListener('click', ()=> switchTab('menu'));
 document.getElementById('tabBtnStaff').addEventListener('click', ()=> switchTab('staff'));
 function switchTab(which){
   document.getElementById('tabBtnMonitor').classList.toggle('active', which==='monitor');
+  document.getElementById('tabBtnTables').classList.toggle('active', which==='tables');
   document.getElementById('tabBtnReports').classList.toggle('active', which==='reports');
   document.getElementById('tabBtnInventory').classList.toggle('active', which==='inventory');
   document.getElementById('tabBtnMenu').classList.toggle('active', which==='menu');
   document.getElementById('tabBtnStaff').classList.toggle('active', which==='staff');
   document.getElementById('tabMonitor').classList.toggle('active', which==='monitor');
+  document.getElementById('tabTables').classList.toggle('active', which==='tables');
   document.getElementById('tabReports').classList.toggle('active', which==='reports');
   document.getElementById('tabInventory').classList.toggle('active', which==='inventory');
   document.getElementById('tabMenu').classList.toggle('active', which==='menu');
@@ -533,6 +577,7 @@ function startDashboard(db, fns){
   startInventory(db, fns);
   startMenuSync(db, fns);
   startStaff(db, fns);
+  startTablesLive(db, fns);
 }
 
 function updateDayBadge(dayId){
@@ -542,6 +587,76 @@ function updateDayBadge(dayId){
   if(d.closedAt){ badge.className='day-status-badge closed'; badge.textContent='مغلق'; }
   else { badge.className='day-status-badge open'; badge.textContent='مفتوح الآن'; }
 }
+
+/* ============ تبويب بث الترابيزات (مفتوحة/فاضية) ============ */
+let _tablesData = null; // آخر نسخة وصلت من الكاشير: {halls:[...], tables:{hallId:[{num,count,total,label,openedAt}...]}}
+let _tablesTickInterval = null;
+
+function elapsedSinceTables(ts){
+  if(!ts) return '';
+  const mins = Math.max(0, Math.floor((Date.now()-ts)/60000));
+  if(mins<1) return 'من دلوقتي';
+  if(mins<60) return `من ${mins} دقيقة`;
+  const h = Math.floor(mins/60), m = mins%60;
+  return `من ${h} س${m>0?' و'+m+' د':''}`;
+}
+
+function startTablesLive(db, fns){
+  const { doc, onSnapshot } = fns;
+  const dot = document.getElementById('tablesStatusDot');
+  const txt = document.getElementById('tablesStatusTxt');
+
+  onSnapshot(doc(db, 'settings', 'tables'), (snap)=>{
+    if(!snap.exists()){
+      dot.className = 'status-dot off';
+      txt.textContent = 'لسه معرفش أي ترابيزات — تأكد إن الكاشير متصل بالسحابة';
+      document.getElementById('tablesLiveBody').innerHTML = '<div class="empty-note">لا توجد بيانات ترابيزات بعد</div>';
+      return;
+    }
+    dot.className = 'status-dot on';
+    txt.textContent = 'متصل — الحالة بتتحدث لحظياً';
+    _tablesData = snap.data();
+    renderTablesLive();
+  }, (err)=>{
+    dot.className = 'status-dot off';
+    txt.textContent = 'في مشكلة في الاتصال';
+    console.warn(err);
+  });
+
+  if(_tablesTickInterval) clearInterval(_tablesTickInterval);
+  _tablesTickInterval = setInterval(renderTablesLive, 30000); // تحديث "من كام دقيقة" كل 30 ثانية من غير ما نستنى تغيير فعلي
+}
+
+function renderTablesLive(){
+  const body = document.getElementById('tablesLiveBody');
+  if(!body || !_tablesData) return;
+  const halls = Array.isArray(_tablesData.halls) ? _tablesData.halls : [];
+  const tables = _tablesData.tables || {};
+  if(!halls.length){ body.innerHTML = '<div class="empty-note">لا توجد صالات مسجلة بعد</div>'; return; }
+
+  let html = '';
+  halls.forEach(hall=>{
+    const hallTables = (tables[hall.id] || []).slice().sort((a,b)=>a.num-b.num);
+    html += `<div class="live-hall-block"><div class="live-hall-name">${escapeHtmlD(hall.name)} (${hall.tableCount} ترابيزة)</div><div class="tables-live-grid">`;
+    for(let i=1;i<=hall.tableCount;i++){
+      const t = hallTables.find(x=>x.num===i);
+      const count = t ? t.count : 0;
+      const hasItems = count > 0;
+      const label = t && t.label ? t.label : `ترابيزة ${i}`;
+      html += `
+        <div class="table-live-card ${hasItems?'occupied':''}">
+          <div>${hasItems?'🟠':'🟢'}</div>
+          <div class="tl-name">${escapeHtmlD(label)}</div>
+          <div class="tl-status">${hasItems ? count+' صنف مفتوح' : 'فاضية'}</div>
+          ${hasItems ? `<div class="tl-total">${fmtD(t.total)} ج.م</div><div class="tl-time">${elapsedSinceTables(t.openedAt)}</div>` : ''}
+        </div>`;
+    }
+    html += `</div></div>`;
+  });
+  body.innerHTML = html;
+}
+function escapeHtmlD(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtD(n){ return (n||0).toLocaleString('en-US'); }
 
 function loadDay(db, fns, bdId){
   const { collection, query, where, onSnapshot } = fns;
