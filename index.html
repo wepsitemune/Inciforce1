@@ -154,6 +154,33 @@ tbody tr:hover{background:var(--surface-2);}
 .table-live-card.occupied .tl-status{color:var(--gold-bright);}
 .table-live-card .tl-total{font-size:12.5px; font-weight:800; color:var(--gold-bright); margin-top:3px;}
 .table-live-card .tl-time{font-size:10px; color:var(--muted); margin-top:2px;}
+.table-live-card{cursor:pointer; transition:transform .15s;}
+.table-live-card:hover{transform:translateY(-2px);}
+
+/* ---------- مودال تفاصيل الترابيزة ---------- */
+.table-modal-overlay{
+  display:none; position:fixed; inset:0; background:rgba(51,47,39,.45); z-index:999;
+  align-items:center; justify-content:center; padding:16px;
+}
+.table-modal-overlay.show{display:flex;}
+.table-modal{
+  background:var(--surface); border-radius:var(--radius); width:100%; max-width:380px;
+  box-shadow:0 20px 40px rgba(0,0,0,.2); overflow:hidden;
+}
+.table-modal-head{
+  display:flex; align-items:center; justify-content:space-between; padding:14px 16px;
+  border-bottom:1px solid var(--line);
+}
+.table-modal-head h3{margin:0; font-size:15px; color:var(--gold-bright);}
+.table-modal-close{background:none; border:none; font-size:16px; cursor:pointer; color:var(--muted);}
+.table-modal-body{padding:14px 16px;}
+.tm-item-row{display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px dashed var(--line); font-size:13px;}
+.tm-item-row:last-child{border-bottom:none;}
+.tm-item-name{color:var(--cream); font-weight:700;}
+.tm-item-qty{color:var(--muted);}
+.tm-item-sub{color:var(--gold-bright); font-weight:800;}
+.tm-total-row{display:flex; justify-content:space-between; padding:12px 0 0; margin-top:6px; border-top:2px solid var(--line); font-weight:900; font-size:14.5px; color:var(--gold-bright);}
+.tm-meta{font-size:12px; color:var(--muted); margin-bottom:8px;}
 .pill{
   font-size:10.5px; font-weight:800; padding:2px 8px; border-radius:999px; display:inline-block;
 }
@@ -323,6 +350,17 @@ tbody tr:hover{background:var(--surface-2);}
         </div>
       </div>
       <div id="tablesLiveBody"><div class="empty-note">جاري التحميل...</div></div>
+    </div>
+
+    <!-- مودال تفاصيل الترابيزة (بيفتح لما تدوس على أي ترابيزة في تبويب بث الترابيزات) -->
+    <div class="table-modal-overlay" id="tableDetailOverlay">
+      <div class="table-modal">
+        <div class="table-modal-head">
+          <h3 id="tableDetailTitle">ترابيزة</h3>
+          <button type="button" class="table-modal-close" id="tableDetailClose">✕</button>
+        </div>
+        <div id="tableDetailBody"></div>
+      </div>
     </div>
 
     <div class="tab-panel" id="tabReports">
@@ -644,7 +682,7 @@ function renderTablesLive(){
       const hasItems = count > 0;
       const label = t && t.label ? t.label : `ترابيزة ${i}`;
       html += `
-        <div class="table-live-card ${hasItems?'occupied':''}">
+        <div class="table-live-card ${hasItems?'occupied':''}" data-hall="${escapeHtmlD(hall.id)}" data-num="${i}">
           <div>${hasItems?'🟠':'🟢'}</div>
           <div class="tl-name">${escapeHtmlD(label)}</div>
           <div class="tl-status">${hasItems ? count+' صنف مفتوح' : 'فاضية'}</div>
@@ -657,6 +695,47 @@ function renderTablesLive(){
 }
 function escapeHtmlD(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function fmtD(n){ return (n||0).toLocaleString('en-US'); }
+
+/* ---------- مودال تفاصيل الترابيزة (بيفتح لما تدوس على أي كارت) ---------- */
+document.getElementById('tablesLiveBody').addEventListener('click', (e)=>{
+  const card = e.target.closest('.table-live-card');
+  if(!card) return;
+  showTableDetail(card.dataset.hall, Number(card.dataset.num));
+});
+document.getElementById('tableDetailClose').addEventListener('click', closeTableDetail);
+document.getElementById('tableDetailOverlay').addEventListener('click', (e)=>{
+  if(e.target.id === 'tableDetailOverlay') closeTableDetail();
+});
+function closeTableDetail(){
+  document.getElementById('tableDetailOverlay').classList.remove('show');
+}
+function showTableDetail(hallId, num){
+  if(!_tablesData) return;
+  const hall = (_tablesData.halls||[]).find(h=>h.id===hallId);
+  const hallTables = (_tablesData.tables && _tablesData.tables[hallId]) || [];
+  const t = hallTables.find(x=>x.num===num);
+  const label = (t && t.label) ? t.label : `ترابيزة ${num}`;
+  document.getElementById('tableDetailTitle').textContent = `${hall ? hall.name+' — ' : ''}${label}`;
+
+  const body = document.getElementById('tableDetailBody');
+  const items = t && Array.isArray(t.items) ? t.items.filter(it=>(it.qty||0)>0) : [];
+  if(!items.length){
+    body.innerHTML = `<div class="table-modal-body"><div class="empty-note">مفيش طلب مفتوح على الترابيزة دي حالياً</div></div>`;
+  } else {
+    const rows = items.map(it => `
+      <div class="tm-item-row">
+        <span class="tm-item-name">${escapeHtmlD(it.name)} <span class="tm-item-qty">×${it.qty}</span></span>
+        <span class="tm-item-sub">${fmtD((it.price||0)*(it.qty||0))} ج.م</span>
+      </div>`).join('');
+    body.innerHTML = `
+      <div class="table-modal-body">
+        <div class="tm-meta">${elapsedSinceTables(t.openedAt) || ''}</div>
+        ${rows}
+        <div class="tm-total-row"><span>الإجمالي</span><span>${fmtD(t.total)} ج.م</span></div>
+      </div>`;
+  }
+  document.getElementById('tableDetailOverlay').classList.add('show');
+}
 
 function loadDay(db, fns, bdId){
   const { collection, query, where, onSnapshot } = fns;
