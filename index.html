@@ -235,6 +235,7 @@ tbody tr:hover{background:var(--surface-2);}
 .tm-item-sub{color:var(--gold-bright); font-weight:800;}
 .tm-total-row{display:flex; justify-content:space-between; padding:12px 0 0; margin-top:6px; border-top:2px solid var(--line); font-weight:900; font-size:14.5px; color:var(--gold-bright);}
 .tm-meta{font-size:12px; color:var(--muted); margin-bottom:8px;}
+.hr-emp-name-link{color:var(--gold-bright); font-weight:800; cursor:pointer; text-decoration:underline dashed; text-underline-offset:3px;}
 .pill{
   font-size:10.5px; font-weight:800; padding:2px 8px; border-radius:999px; display:inline-block;
 }
@@ -302,6 +303,15 @@ tbody tr:hover{background:var(--surface-2);}
   font-family:inherit; font-size:12px; background:var(--surface-2); color:var(--cream);
 }
 .supply-row .supply-btn{white-space:nowrap;}
+
+.day-row{display:flex; align-items:center; gap:6px; padding:7px 0; border-bottom:1px dashed var(--line); font-size:12.5px; flex-wrap:wrap;}
+.day-row .d{min-width:52px; color:var(--cream-dim); font-weight:700;}
+.day-row .info{flex:1; color:var(--muted); font-size:11.5px; min-width:90px;}
+.day-row .icon-btn{padding:3px 8px; font-size:11px;}
+.day-row.pending{opacity:.55;}
+.pill.none{background:rgba(224,100,90,.15); color:#e0645a;}
+.pill.off{background:rgba(147,130,106,.2); color:var(--muted);}
+.pill.pres{background:rgba(56,193,114,.15); color:var(--ok);}
 </style>
 </head>
 <body>
@@ -503,6 +513,7 @@ tbody tr:hover{background:var(--surface-2);}
         <div class="day-select-row" style="margin-bottom:8px;">
           <input type="text" id="hrNewPhone" placeholder="رقم الهاتف">
           <input type="number" step="any" id="hrNewSalary" placeholder="الراتب الأساسي">
+          <input type="number" step="any" id="hrNewAgreedHours" placeholder="ساعات الشيفت المتفق عليها" value="8" style="max-width:190px;">
         </div>
         <div class="day-select-row" style="margin-bottom:0;">
           <input type="date" id="hrNewStartDate">
@@ -522,12 +533,21 @@ tbody tr:hover{background:var(--surface-2);}
         </div>
         <div class="day-select-row" style="margin-bottom:0; flex-wrap:wrap;">
           <select id="hrAttEmployee" style="min-width:160px;"></select>
+          <select id="hrAttStatus" style="min-width:100px;">
+            <option value="present" selected>حاضر</option>
+            <option value="leave">إجازة</option>
+            <option value="absent">غياب</option>
+          </select>
           <input type="time" id="hrAttIn" placeholder="الحضور">
           <input type="time" id="hrAttOut" placeholder="الانصراف">
           <input type="number" step="any" id="hrAttDeduction" placeholder="الخصم" style="max-width:110px;">
           <input type="number" step="any" id="hrAttAdvance" placeholder="السلفة" style="max-width:110px;">
+          <label style="display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; color:var(--cream-dim); white-space:nowrap; flex:0 0 auto;">
+            <input type="checkbox" id="hrAttPermission" style="flex:0 0 auto; min-width:0; width:16px; height:16px; padding:0; background:transparent;"> استئذان
+          </label>
           <button class="btn" style="width:auto; padding:9px 16px;" id="addHrAttBtn">تسجيل</button>
         </div>
+                <div class="sub-note" id="hrAttHoursPreview" style="margin-top:4px; color:var(--gold-bright); display:none;"></div>
       </div>
 
       <div class="panel table-scroll">
@@ -543,6 +563,24 @@ tbody tr:hover{background:var(--surface-2);}
         <div class="summary-row"><span>إجمالي الساعات</span><b id="hrTotalHours">٠</b></div>
         <div class="summary-row"><span>إجمالي الخصومات</span><b id="hrTotalDeduction">٠</b></div>
         <div class="summary-row"><span>إجمالي السلف</span><b id="hrTotalAdvance">٠</b></div>
+      </div>
+    </div>
+
+    <!-- مودال ملف الموظف الإحصائي (بيفتح لما تدوس على اسم الموظف في جدول الحضور) -->
+    <div class="table-modal-overlay" id="employeeStatsOverlay">
+      <div class="table-modal" style="max-width:420px;">
+        <div class="table-modal-head">
+          <h3 id="employeeStatsTitle">موظف</h3>
+          <button type="button" class="table-modal-close" id="employeeStatsClose">✕</button>
+        </div>
+        <div class="table-modal-body">
+          <div class="day-select-row" style="margin-bottom:14px;">
+            <label style="font-size:13px; color:var(--cream-dim);">الشهر:</label>
+            <input type="month" id="employeeStatsMonth" style="max-width:160px;">
+          </div>
+          <div class="cards-grid" id="employeeStatsCards"></div>
+          <div class="summary-box" id="employeeStatsSalaryBox" style="margin-top:4px;"></div>
+        </div>
       </div>
     </div>
 
@@ -1610,17 +1648,22 @@ function startStaffHR(db, fns){
     const job = document.getElementById('hrNewJob').value;
     const phone = document.getElementById('hrNewPhone').value.trim();
     const salary = parseFloat(document.getElementById('hrNewSalary').value) || 0;
+    const agreedHours = parseFloat(document.getElementById('hrNewAgreedHours').value) || 8;
     const startDate = document.getElementById('hrNewStartDate').value || todayIso();
     if(!name){ alert('اكتب اسم الموظف'); return; }
-    _hrProfiles.push({ id: 'emp_' + Date.now(), name, job, phone, salary, startDate });
+    _hrProfiles.push({ id: 'emp_' + Date.now(), name, job, phone, salary, agreedHours, startDate });
     pushHrProfilesToCloud();
     renderHrStaffList();
     renderHrEmployeeSelect();
     document.getElementById('hrNewName').value = '';
     document.getElementById('hrNewPhone').value = '';
     document.getElementById('hrNewSalary').value = '';
+    document.getElementById('hrNewAgreedHours').value = '8';
     document.getElementById('hrNewStartDate').value = '';
   });
+
+  document.getElementById('hrAttIn').addEventListener('input', updateHrAttHoursPreview);
+  document.getElementById('hrAttOut').addEventListener('input', updateHrAttHoursPreview);
 
   document.getElementById('addHrAttBtn').addEventListener('click', ()=>{
     const empId = document.getElementById('hrAttEmployee').value;
@@ -1630,15 +1673,37 @@ function startStaffHR(db, fns){
     const checkOut = document.getElementById('hrAttOut').value;
     const deduction = parseFloat(document.getElementById('hrAttDeduction').value) || 0;
     const advance = parseFloat(document.getElementById('hrAttAdvance').value) || 0;
+    const permission = document.getElementById('hrAttPermission').checked;
+    const status = document.getElementById('hrAttStatus').value || 'present';
     const dateKey = dateInput.value || todayIso();
     const hours = calcHours(checkIn, checkOut);
     const id = `att_${dateKey}_${empId}`;
-    pushHrAttendance({ id, dateKey, employeeId: empId, employeeName: emp.name, checkIn, checkOut, hours, deduction, advance });
+    pushHrAttendance({ id, dateKey, employeeId: empId, employeeName: emp.name, checkIn, checkOut, hours, deduction, advance, permission, status });
     document.getElementById('hrAttIn').value = '';
     document.getElementById('hrAttOut').value = '';
     document.getElementById('hrAttDeduction').value = '';
     document.getElementById('hrAttAdvance').value = '';
+    document.getElementById('hrAttPermission').checked = false;
+    document.getElementById('hrAttStatus').value = 'present';
+    updateHrAttHoursPreview();
   });
+}
+
+function updateHrAttHoursPreview(){
+  const checkIn = document.getElementById('hrAttIn').value;
+  const checkOut = document.getElementById('hrAttOut').value;
+  const preview = document.getElementById('hrAttHoursPreview');
+  if(!checkIn || !checkOut){ preview.style.display = 'none'; return; }
+  const hours = calcHours(checkIn, checkOut);
+  const overnight = (()=>{
+    const [h1,m1] = checkIn.split(':').map(Number);
+    const [h2,m2] = checkOut.split(':').map(Number);
+    return (h2*60+m2) < (h1*60+m1);
+  })();
+  preview.style.display = 'block';
+  preview.textContent = overnight
+    ? `⏱️ الساعات المحسوبة: ${fmt2(hours)} ساعة — الشيفت عدّى منتصف الليل، هيتسجل تحت تاريخ يوم الحضور`
+    : `⏱️ الساعات المحسوبة: ${fmt2(hours)} ساعة`;
 }
 
 function calcHours(checkIn, checkOut){
@@ -1707,16 +1772,34 @@ function renderHrStaffList(){
   box.innerHTML = _hrProfiles.map((e, idx)=>`
     <div class="staff-card" data-idx="${idx}">
       <div class="top">
-        <div><b>🧍 ${escapeHtmlD(e.name)}</b> <span>(${escapeHtmlD(e.job||'-')})</span></div>
+        <div><b class="hr-emp-name-link" data-emp="${e.id}" data-name="${escapeHtmlD(e.name)}">🧍 ${escapeHtmlD(e.name)}</b> <span>(${escapeHtmlD(e.job||'-')})</span></div>
         <button class="icon-btn danger" data-role="del-hr-staff">🗑️ حذف</button>
       </div>
       <div class="staff-perms" style="color:var(--cream-dim); font-size:12.5px;">
         <span>📞 ${escapeHtmlD(e.phone||'-')}</span>
         <span>💰 ${fmt2(e.salary||0)} ج راتب أساسي</span>
+        <span>⏱️ ${fmt2(e.agreedHours||8)} ساعة/شيفت</span>
         <span>📅 ${escapeHtmlD(e.startDate||'-')}</span>
+        <button class="icon-btn" data-role="edit-salary">✏️ تعديل الراتب</button>
       </div>
     </div>`).join('');
 
+  box.querySelectorAll('.hr-emp-name-link').forEach(el=>{
+    el.addEventListener('click', ()=> openEmployeeStats(el.dataset.emp, el.dataset.name));
+  });
+  box.querySelectorAll('[data-role="edit-salary"]').forEach(btn=>{
+    const idx = parseInt(btn.closest('.staff-card').dataset.idx);
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      const v = prompt('الراتب الأساسي الجديد لـ ' + _hrProfiles[idx].name, _hrProfiles[idx].salary||0);
+      if(v===null) return;
+      const n = parseFloat(v);
+      if(isNaN(n) || n<0){ alert('اكتب رقم صحيح'); return; }
+      _hrProfiles[idx].salary = n;
+      pushHrProfilesToCloud();
+      renderHrStaffList();
+    });
+  });
   box.querySelectorAll('[data-role="del-hr-staff"]').forEach(btn=>{
     const idx = parseInt(btn.closest('.staff-card').dataset.idx);
     btn.addEventListener('click', ()=>{
@@ -1727,6 +1810,12 @@ function renderHrStaffList(){
       renderHrEmployeeSelect();
     });
   });
+}
+
+function hrStatusPillHtml(status){
+  if(status === 'leave') return '<span class="pill" style="background:rgba(74,174,53,.15); color:var(--ok);">إجازة</span>';
+  if(status === 'absent') return '<span class="pill" style="background:rgba(224,100,90,.15); color:#e0645a;">غياب</span>';
+  return '';
 }
 
 function renderHrAttendance(){
@@ -1747,13 +1836,13 @@ function renderHrAttendance(){
   body.innerHTML = _hrAttendance.map(r=>{
     totalHours += r.hours||0; totalDed += r.deduction||0; totalAdv += r.advance||0;
     return `<tr>
-      <td>${escapeHtmlD(r.employeeName||'-')}</td>
+      <td><span class="hr-emp-name-link" data-emp="${r.employeeId}" data-name="${escapeHtmlD(r.employeeName||'-')}">${escapeHtmlD(r.employeeName||'-')}</span> ${hrStatusPillHtml(r.status)}</td>
       <td>${r.checkIn||'-'}</td>
       <td>${r.checkOut||'-'}</td>
       <td>${fmt2(r.hours||0)}</td>
       <td>${fmt2(r.deduction||0)}</td>
       <td>${fmt2(r.advance||0)}</td>
-      <td><button class="icon-btn danger" data-id="${r.id}" data-role="del-att">🗑️</button></td>
+      <td style="white-space:nowrap;"><button class="icon-btn" data-id="${r.id}" data-role="edit-att">✏️</button> <button class="icon-btn danger" data-id="${r.id}" data-role="del-att">🗑️</button></td>
     </tr>`;
   }).join('');
   document.getElementById('hrTotalHours').textContent = fmt2(totalHours);
@@ -1761,12 +1850,136 @@ function renderHrAttendance(){
   document.getElementById('hrTotalAdvance').textContent = fmt2(totalAdv) + ' ج';
   updateHomeStaffCards(totalHours);
 
+  body.querySelectorAll('[data-role="edit-att"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const rec = _hrAttendance.find(x=>x.id===btn.dataset.id);
+      if(rec) editHrAttendance(rec);
+    });
+  });
   body.querySelectorAll('[data-role="del-att"]').forEach(btn=>{
     btn.addEventListener('click', ()=>{
       if(!confirm('متأكد من حذف تسجيل الحضور ده؟')) return;
       deleteHrAttendance(btn.dataset.id);
     });
   });
+  body.querySelectorAll('.hr-emp-name-link').forEach(el=>{
+    el.addEventListener('click', ()=> openEmployeeStats(el.dataset.emp, el.dataset.name));
+  });
+}
+
+/* ============ مودال ملف الموظف الإحصائي ============ */
+const OVERTIME_HOURLY_RATE = 15; // سعر ساعة الأوفرتايم الثابت (ج.م/ساعة)
+let _empStatsUnsub = null;
+let _empStatsRecords = [];
+let _empStatsCurrentId = null;
+
+function openEmployeeStats(employeeId, employeeName){
+  if(!employeeId) return;
+  _empStatsCurrentId = employeeId;
+  document.getElementById('employeeStatsTitle').textContent = employeeName || 'موظف';
+  const monthInput = document.getElementById('employeeStatsMonth');
+  if(!monthInput.value) monthInput.value = currentMonthIso();
+  document.getElementById('employeeStatsOverlay').classList.add('show');
+  document.getElementById('employeeStatsCards').innerHTML = '<div class="empty-note">جاري التحميل...</div>';
+  document.getElementById('employeeStatsSalaryBox').innerHTML = '';
+
+  if(_empStatsUnsub){ _empStatsUnsub(); _empStatsUnsub = null; }
+  if(!_hrDb || !_hrFns) return;
+  const { collection, query, where, onSnapshot } = _hrFns;
+  const q = query(collection(_hrDb,'attendance'), where('employeeId','==', employeeId));
+  _empStatsUnsub = onSnapshot(q, (snap)=>{
+    _empStatsRecords = [];
+    snap.forEach(d=> _empStatsRecords.push(d.data()));
+    renderEmployeeStats();
+  }, (err)=> {
+    console.warn('تعذر تحميل إحصائيات الموظف', err);
+    document.getElementById('employeeStatsCards').innerHTML = '<div class="empty-note">تعذر تحميل البيانات</div>';
+  });
+}
+
+function closeEmployeeStats(){
+  document.getElementById('employeeStatsOverlay').classList.remove('show');
+  if(_empStatsUnsub){ _empStatsUnsub(); _empStatsUnsub = null; }
+  _empStatsCurrentId = null;
+}
+
+document.getElementById('employeeStatsClose').addEventListener('click', closeEmployeeStats);
+document.getElementById('employeeStatsOverlay').addEventListener('click', (e)=>{
+  if(e.target.id === 'employeeStatsOverlay') closeEmployeeStats();
+});
+document.getElementById('employeeStatsMonth').addEventListener('change', renderEmployeeStats);
+
+/* تحميل تسجيل في فورم التسجيل للتعديل (نفس الـ id بيعمل overwrite للتسجيل القديم) */
+function editHrAttendance(rec){
+  const dateInput = document.getElementById('hrAttendanceDate');
+  const needReload = dateInput.value !== rec.dateKey;
+  dateInput.value = rec.dateKey;
+  if(needReload) loadHrAttendance(rec.dateKey);
+  renderHrEmployeeSelect();
+  document.getElementById('hrAttEmployee').value = rec.employeeId;
+  document.getElementById('hrAttStatus').value = rec.status || 'present';
+  document.getElementById('hrAttIn').value = rec.checkIn || '';
+  document.getElementById('hrAttOut').value = rec.checkOut || '';
+  document.getElementById('hrAttDeduction').value = rec.deduction || '';
+  document.getElementById('hrAttAdvance').value = rec.advance || '';
+  document.getElementById('hrAttPermission').checked = !!rec.permission;
+  updateHrAttHoursPreview();
+  document.getElementById('addHrAttBtn').scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+function renderEmployeeStats(){
+  const monthStr = document.getElementById('employeeStatsMonth').value; // yyyy-mm
+  if(!monthStr) return;
+  const emp = _hrProfiles.find(e=>e.id===_empStatsCurrentId);
+  const agreedHours = (emp && emp.agreedHours) || 8;
+  const baseSalary = (emp && emp.salary) || 0;
+  const PAY_DAYS_IN_MONTH = 30;                          // الشهر 30 يوم ثابت
+  const dailyRate = baseSalary / PAY_DAYS_IN_MONTH;
+  const [y, m] = monthStr.split('-').map(Number);
+  const monthStart = `${monthStr}-01`;
+  const lastDay = new Date(y, m, 0).getDate();
+  const monthEnd = `${monthStr}-${String(lastDay).padStart(2,'0')}`;
+  const inRange = _empStatsRecords.filter(r => r.dateKey >= monthStart && r.dateKey <= monthEnd);
+
+  let totalHours = 0, totalAdv = 0, totalDed = 0, presentDays = 0, leaveDays = 0, absentDays = 0, permissionCount = 0, overtimeHours = 0;
+  inRange.forEach(r=>{
+    totalHours += r.hours||0;
+    totalAdv += r.advance||0;
+    totalDed += r.deduction||0;
+    if(r.status === 'leave') leaveDays++;
+    else if(r.status === 'absent') absentDays++;
+    else if(r.checkIn || r.checkOut || (r.hours||0)>0){
+      presentDays++;
+      overtimeHours += Math.max(0, (r.hours||0) - agreedHours);
+    }
+    if(r.permission) permissionCount++;
+  });
+
+  // المرتب = أيام الحضور + أيام الإجازة (المسجلة) × سعر اليوم. أي يوم مفيهوش تسجيل أو مسجل غياب مش بيتدفع.
+  const paidDays = Math.min(presentDays + leaveDays, PAY_DAYS_IN_MONTH);
+  const daysPay = Math.round(paidDays * dailyRate * 100) / 100;
+  const overtimePay = overtimeHours * OVERTIME_HOURLY_RATE;
+  const netPay = daysPay - totalDed - totalAdv + overtimePay;
+
+  document.getElementById('employeeStatsCards').innerHTML = `
+    <div class="card c-teal"><div class="lbl">إجمالي ساعات العمل</div><div class="val">${fmt2(totalHours)}</div></div>
+    <div class="card c-green"><div class="lbl">أيام الحضور</div><div class="val">${presentDays}</div></div>
+    <div class="card c-red"><div class="lbl">أيام الغياب</div><div class="val">${absentDays}</div></div>
+    <div class="card plain"><div class="lbl">أيام الإجازة</div><div class="val">${leaveDays}</div></div>
+    <div class="card c-orange"><div class="lbl">إجمالي السلف</div><div class="val">${fmt2(totalAdv)}</div></div>
+    <div class="card c-purple"><div class="lbl">إجمالي الخصومات</div><div class="val">${fmt2(totalDed)}</div></div>
+    <div class="card c-blue"><div class="lbl">عدد مرات الاستئذان</div><div class="val">${permissionCount}</div></div>
+    <div class="card plain"><div class="lbl">ساعات الأوفرتايم (فوق ${fmt2(agreedHours)} س/شيفت)</div><div class="val">${fmt2(overtimeHours)}</div></div>
+    <div class="card c-blue"><div class="lbl">مقابل الأوفرتايم (${fmt2(OVERTIME_HOURLY_RATE)} ج/س)</div><div class="val">${fmt2(overtimePay)}</div></div>
+  `;
+  document.getElementById('employeeStatsSalaryBox').innerHTML = `
+    <div class="summary-row" style="opacity:.7;"><span>الراتب الأساسي (شهر كامل)</span><b>${fmt2(baseSalary)} ج</b></div>
+    <div class="summary-row"><span>مستحق الأيام (${paidDays} يوم × ${fmt2(dailyRate)})</span><b>${fmt2(daysPay)} ج</b></div>
+    <div class="summary-row"><span>+ مقابل الأوفرتايم</span><b>${fmt2(overtimePay)} ج</b></div>
+    <div class="summary-row"><span>- إجمالي الخصومات</span><b>${fmt2(totalDed)} ج</b></div>
+    <div class="summary-row"><span>- إجمالي السلف المسحوبة</span><b>${fmt2(totalAdv)} ج</b></div>
+    <div class="summary-row" style="border-top:2px solid var(--line); margin-top:6px; padding-top:10px; font-size:15px;"><span>الصافي المستحق للموظف</span><b style="color:var(--gold-bright);">${fmt2(netPay)} ج</b></div>
+  `;
 }
 
 function updateHomeStaffCards(totalHours){
