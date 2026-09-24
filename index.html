@@ -456,8 +456,8 @@ tbody tr:hover{background:var(--surface-2);}
       </div>
 
       <div class="chart-box">
-        <h3>أكتر 10 أصناف مبيعاً (بالكمية)</h3>
-        <canvas id="topSellersChart"></canvas>
+        <h3>المبيعات حسب الصنف (الكمية المباعة)</h3>
+        <div id="itemSalesList"></div>
       </div>
     </div>
 
@@ -1032,7 +1032,7 @@ function renderShifts(shifts){
 /* ============ تبويب التقارير والإحصائيات ============ */
 let _reportOrdersUnsub = null, _reportExpensesUnsub = null;
 let _menuCatalog = []; // كل أصناف المنيو (متزامنة من الكاشير) — بتتحمل مرة واحدة
-let _peakChart = null, _topSellersChart = null;
+let _peakChart = null;
 let _reportPeriodMode = 'day'; // 'day' | 'month'
 
 function todayIso(){
@@ -1130,8 +1130,22 @@ function renderReports(orders, expenses){
     });
   });
   const sortedItems = Object.entries(itemQty).sort((a,b)=>b[1]-a[1]);
-  const top10 = sortedItems.slice(0,10);
-  renderTopSellersChart(top10.map(x=>x[0]), top10.map(x=>x[1]));
+  renderItemSalesList(sortedItems);
+}
+
+function renderItemSalesList(sortedItems){
+  const box = document.getElementById('itemSalesList');
+  if(!box) return;
+  if(!sortedItems.length){
+    box.innerHTML = '<div class="empty-note">مفيش مبيعات مسجلة في الفترة دي</div>';
+    return;
+  }
+  box.innerHTML = sortedItems.map(([name, qty], i)=>`
+    <div class="day-row">
+      <span class="d" style="min-width:26px; color:var(--muted);">${i+1}</span>
+      <span class="info" style="flex:1; color:var(--cream); font-size:13px; text-align:right;">${escapeHtmlD(name)}</span>
+      <b style="color:var(--gold-bright); min-width:36px; text-align:left;">${qty}</b>
+    </div>`).join('');
 }
 
 function renderPeakHoursChart(labels, data){
@@ -1144,21 +1158,6 @@ function renderPeakHoursChart(labels, data){
       responsive:true,
       plugins:{ legend:{ display:false } },
       scales:{ y:{ beginAtZero:true, ticks:{ precision:0 } } }
-    }
-  });
-}
-
-function renderTopSellersChart(labels, data){
-  const ctx = document.getElementById('topSellersChart');
-  if(_topSellersChart) _topSellersChart.destroy();
-  _topSellersChart = new Chart(ctx, {
-    type: 'bar',
-    data: { labels, datasets: [{ label: 'الكمية المباعة', data, backgroundColor: '#38c172', borderRadius: 4 }] },
-    options: {
-      indexAxis: 'y',
-      responsive:true,
-      plugins:{ legend:{ display:false } },
-      scales:{ x:{ beginAtZero:true, ticks:{ precision:0 } } }
     }
   });
 }
