@@ -219,15 +219,17 @@ tbody tr:hover{background:var(--surface-2);}
 .table-modal-overlay.show{display:flex;}
 .table-modal{
   background:var(--surface); border-radius:var(--radius); width:100%; max-width:380px;
-  box-shadow:0 20px 40px rgba(0,0,0,.2); overflow:hidden;
+  box-shadow:0 20px 40px rgba(0,0,0,.2);
+  max-height:calc(100vh - 32px); max-height:calc(100dvh - 32px);
+  display:flex; flex-direction:column;
 }
 .table-modal-head{
   display:flex; align-items:center; justify-content:space-between; padding:14px 16px;
-  border-bottom:1px solid var(--line);
+  border-bottom:1px solid var(--line); flex:0 0 auto;
 }
 .table-modal-head h3{margin:0; font-size:15px; color:var(--gold-bright);}
 .table-modal-close{background:none; border:none; font-size:16px; cursor:pointer; color:var(--muted);}
-.table-modal-body{padding:14px 16px;}
+.table-modal-body{padding:14px 16px; overflow-y:auto; -webkit-overflow-scrolling:touch; flex:1 1 auto; min-height:0;}
 .tm-item-row{display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px dashed var(--line); font-size:13px;}
 .tm-item-row:last-child{border-bottom:none;}
 .tm-item-name{color:var(--cream); font-weight:700;}
