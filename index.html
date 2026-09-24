@@ -7,59 +7,69 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <style>
 :root{
-  --bg:#fff7ed;
-  --surface:#ffffff;
-  --surface-2:#fff0e0;
-  --line:#fed7aa;
-  --gold:#f97316;
-  --gold-bright:#c2410c;
-  --gold-dim:#ea580c;
-  --cream:#332f27;
-  --cream-dim:#5f5747;
-  --muted:#7d745f;
-  --ok:#4aae35;
-  --danger:#c0392b;
-  --radius:14px;
+  --bg:#17110c;
+  --bg-2:#1f1712;
+  --surface:#261c14;
+  --surface-2:#2f2418;
+  --line:#43331f;
+  --gold:#d9a54c;
+  --gold-bright:#eec877;
+  --gold-dim:#b9822f;
+  --cream:#f4ecdd;
+  --cream-dim:#cdbfa5;
+  --muted:#93826a;
+  --ok:#38c172;
+  --danger:#e0544a;
+  --info:#4aa3f0;
+  --purple:#a973e0;
+  --teal:#2bbfad;
+  --radius:16px;
+  --nav-h:64px;
 }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;height:100%;}
 body{
   font-family:'Tajawal','Segoe UI',Arial,sans-serif;
   background:
-    radial-gradient(1200px 600px at 15% -10%, #ffedd5 0%, transparent 60%),
-    radial-gradient(1000px 500px at 110% 10%, #e1f7db 0%, transparent 55%),
+    radial-gradient(900px 500px at 15% -10%, rgba(217,165,76,.10) 0%, transparent 60%),
+    radial-gradient(800px 460px at 110% 10%, rgba(43,191,173,.08) 0%, transparent 55%),
     var(--bg);
   color:var(--cream);
   min-height:100%;
+  padding-bottom:calc(var(--nav-h) + 14px);
 }
-.wrap{max-width:1100px; margin:0 auto; padding:18px;}
+.wrap{max-width:1100px; margin:0 auto; padding:14px 14px 6px;}
+::-webkit-scrollbar{width:8px; height:8px;}
+::-webkit-scrollbar-thumb{background:var(--line); border-radius:8px;}
 
 /* ---------- شاشة تسجيل الدخول ---------- */
 #loginScreen{
   min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;
 }
 .login-box{
-  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
-  box-shadow:0 14px 30px rgba(194,65,12,.12); padding:28px 24px; width:100%; max-width:360px;
+  background:var(--surface); border:1px solid var(--line); border-radius:20px;
+  box-shadow:0 20px 50px rgba(0,0,0,.45); padding:32px 26px; width:100%; max-width:360px;
 }
-.login-box h1{font-size:20px; margin:0 0 4px; text-align:center; color:var(--gold-bright);}
-.login-box .sub{font-size:13px; color:var(--muted); text-align:center; margin-bottom:20px;}
+.login-logo{width:64px; height:64px; margin:0 auto 12px; border-radius:50%; background:var(--surface-2); display:flex; align-items:center; justify-content:center; font-size:30px; border:1px solid var(--line);}
+.login-box h1{font-size:20px; margin:0 0 4px; text-align:center; color:var(--gold-bright); font-weight:900;}
+.login-box .sub{font-size:13px; color:var(--muted); text-align:center; margin-bottom:22px;}
 .field{margin-bottom:14px;}
 .field label{display:block; font-size:12.5px; color:var(--cream-dim); margin-bottom:5px;}
 .field input{
-  width:100%; padding:11px 12px; border-radius:10px; border:1px solid var(--line);
+  width:100%; padding:12px 13px; border-radius:12px; border:1px solid var(--line);
   background:var(--surface-2); font-size:14px; color:var(--cream); font-family:inherit;
 }
+.field input::placeholder{color:var(--muted);}
 .field input:focus{outline:2px solid var(--gold); outline-offset:1px;}
 .btn{
-  width:100%; padding:12px; border:none; border-radius:10px; background:var(--gold);
-  color:#fff; font-weight:800; font-size:14.5px; cursor:pointer; font-family:inherit;
+  width:100%; padding:13px; border:none; border-radius:12px; background:var(--gold);
+  color:#241a10; font-weight:800; font-size:14.5px; cursor:pointer; font-family:inherit;
 }
 .btn:hover{background:var(--gold-bright);}
 .btn:disabled{opacity:.6; cursor:default;}
 .err-msg{color:var(--danger); font-size:12.5px; text-align:center; margin-top:10px; min-height:16px;}
 .config-warning{
-  max-width:420px; margin:60px auto; background:#fff3f0; border:1px solid #f3b5a8;
+  max-width:420px; margin:60px auto; background:var(--surface); border:1px solid var(--danger);
   border-radius:12px; padding:18px; text-align:center; color:var(--danger); font-size:13.5px; line-height:1.8;
 }
 
@@ -67,54 +77,97 @@ body{
 #app{display:none;}
 .topbar{
   display:flex; align-items:center; justify-content:space-between; gap:10px;
-  padding:14px 4px; border-bottom:1px solid var(--line); margin-bottom:10px;
+  padding:14px 16px; background:var(--surface); border:1px solid var(--line); border-radius:18px; margin-bottom:14px;
+  box-shadow:0 10px 24px rgba(0,0,0,.25);
 }
-.topbar h1{font-size:18px; margin:0; color:var(--gold-bright);}
-.status-dot{width:9px; height:9px; border-radius:50%; display:inline-block; margin-left:6px;}
+.topbar-brand{display:flex; align-items:center; gap:10px;}
+.topbar-logo{width:38px; height:38px; border-radius:50%; background:var(--surface-2); display:flex; align-items:center; justify-content:center; font-size:19px; border:1px solid var(--line);}
+.topbar h1{font-size:15px; margin:0; color:var(--cream); font-weight:900;}
+.status-dot{width:8px; height:8px; border-radius:50%; display:inline-block; margin-left:5px;}
 .status-dot.on{background:var(--ok); box-shadow:0 0 6px var(--ok);}
 .status-dot.off{background:var(--danger);}
-.status-txt{font-size:12px; color:var(--muted);}
+.status-txt{font-size:11.5px; color:var(--muted);}
 .logout-btn{
-  border:1px solid var(--line); background:var(--surface); color:var(--cream-dim);
-  padding:8px 14px; border-radius:10px; font-size:13px; cursor:pointer; font-family:inherit;
+  border:1px solid var(--line); background:var(--surface-2); color:var(--cream-dim);
+  padding:8px 14px; border-radius:10px; font-size:12.5px; cursor:pointer; font-family:inherit;
 }
 
-/* ---------- تبويبات ---------- */
-.tabbar{display:flex; gap:8px; margin-bottom:18px; border-bottom:1px solid var(--line);}
+/* ---------- تبويبات (داخلية، تحت الهيدر) ---------- */
+.tabbar{display:flex; gap:6px; margin-bottom:16px; overflow-x:auto; padding-bottom:2px;}
 .tab-btn{
-  padding:10px 16px; border:none; background:none; font-family:inherit; font-size:13.5px;
-  font-weight:800; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px;
+  padding:9px 15px; border:1px solid var(--line); background:var(--surface); font-family:inherit; font-size:12.5px;
+  border-radius:999px; font-weight:800; color:var(--cream-dim); cursor:pointer; white-space:nowrap; flex:none;
 }
-.tab-btn.active{color:var(--gold-bright); border-bottom-color:var(--gold-bright);}
+.tab-btn.active{color:#241a10; background:var(--gold); border-color:var(--gold);}
 .tab-panel{display:none;}
 .tab-panel.active{display:block;}
+
+/* ---------- الشريط السفلي (بار التنقل الرئيسي) ---------- */
+.bottom-nav{
+  position:fixed; left:0; right:0; bottom:0; z-index:500; height:var(--nav-h);
+  background:var(--surface); border-top:1px solid var(--line);
+  display:flex; align-items:stretch; justify-content:space-around;
+  box-shadow:0 -8px 24px rgba(0,0,0,.35);
+}
+.bn-btn{
+  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+  border:none; background:none; color:var(--muted); font-family:inherit; font-size:10.5px; font-weight:700; cursor:pointer;
+}
+.bn-btn .ic{font-size:19px; line-height:1;}
+.bn-btn.active{color:var(--gold-bright);}
+.more-sheet-overlay{display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:800; align-items:flex-end; justify-content:center;}
+.more-sheet-overlay.show{display:flex;}
+.more-sheet{background:var(--surface); border-radius:20px 20px 0 0; width:100%; max-width:480px; padding:10px 8px 18px; border:1px solid var(--line); border-bottom:none;}
+.more-sheet .handle{width:40px; height:4px; background:var(--line); border-radius:99px; margin:6px auto 14px;}
+.more-item{display:flex; align-items:center; gap:12px; width:100%; text-align:right; padding:13px 14px; border:none; background:none; color:var(--cream); font-family:inherit; font-size:14px; font-weight:700; cursor:pointer; border-radius:12px;}
+.more-item:hover{background:var(--surface-2);}
+.more-item .ic{font-size:18px;}
 
 .day-select-row{display:flex; align-items:center; gap:10px; margin-bottom:16px; flex-wrap:wrap;}
 .day-select-row label{font-size:13px; color:var(--cream-dim);}
 .day-select-row select, .day-select-row input{
   flex:1; min-width:180px; padding:9px 10px; border-radius:10px; border:1px solid var(--line);
-  background:var(--surface); font-size:13.5px; color:var(--cream); font-family:inherit;
+  background:var(--surface-2); font-size:13.5px; color:var(--cream); font-family:inherit;
 }
+.day-select-row select option{background:var(--surface-2); color:var(--cream);}
 .day-status-badge{
   font-size:11px; font-weight:800; padding:3px 10px; border-radius:999px;
 }
-.day-status-badge.open{background:rgba(74,174,53,.15); color:var(--ok);}
-.day-status-badge.closed{background:rgba(192,57,43,.12); color:var(--danger);}
+.day-status-badge.open{background:rgba(56,193,114,.15); color:var(--ok);}
+.day-status-badge.closed{background:rgba(224,84,74,.15); color:var(--danger);}
 
 .cards-grid{
-  display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:20px;
+  display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:20px;
 }
+@media(min-width:560px){ .cards-grid{grid-template-columns:repeat(3,1fr);} }
 .card{
-  background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
-  padding:14px; box-shadow:0 4px 14px rgba(249,115,22,.08);
+  border-radius:18px; padding:15px; box-shadow:0 8px 18px rgba(0,0,0,.22); color:#fff;
+  background:var(--surface); border:1px solid var(--line);
 }
-.card .lbl{font-size:11.5px; color:var(--muted); margin-bottom:6px;}
-.card .val{font-size:19px; font-weight:900; color:var(--cream);}
-.card.accent .val{color:var(--gold-bright);}
-.card.danger .val{color:var(--danger);}
-.card.ok .val{color:var(--ok);}
+.card .ic{font-size:18px; opacity:.9; margin-bottom:8px;}
+.card .lbl{font-size:11.5px; opacity:.85; margin-bottom:4px;}
+.card .val{font-size:20px; font-weight:900;}
+.card.c-green{background:linear-gradient(150deg,#2fbf71,#1f8f54);}
+.card.c-blue{background:linear-gradient(150deg,#4aa3f0,#2f74c9);}
+.card.c-orange{background:linear-gradient(150deg,#f0a13f,#d9822a);}
+.card.c-red{background:linear-gradient(150deg,#e0645a,#c23f37);}
+.card.c-purple{background:linear-gradient(150deg,#a973e0,#7f49bd);}
+.card.c-teal{background:linear-gradient(150deg,#2bbfad,#1c9184);}
+.card.plain{background:var(--surface); color:var(--cream); border:1px solid var(--line);}
+.card.plain .lbl{color:var(--muted); opacity:1;}
+.card.plain.danger .val{color:var(--danger);}
+.card.plain.ok .val{color:var(--ok);}
 
-.section-title{font-size:15px; font-weight:800; margin:22px 0 10px; color:var(--cream);}
+.summary-box{
+  background:linear-gradient(135deg, var(--surface-2), var(--surface)); border:1px solid var(--line);
+  border-radius:18px; padding:16px; margin-bottom:20px;
+}
+.summary-box h3{margin:0 0 10px; font-size:13.5px; color:var(--gold-bright);}
+.summary-row{display:flex; justify-content:space-between; padding:7px 0; font-size:13px; color:var(--cream-dim); border-top:1px dashed var(--line);}
+.summary-row:first-of-type{border-top:none;}
+.summary-row b{color:var(--cream); font-size:14px;}
+
+.section-title{font-size:14.5px; font-weight:800; margin:22px 0 10px; color:var(--gold-bright); display:flex; align-items:center; justify-content:space-between; gap:8px;}
 .panel{
   background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
   overflow:hidden; margin-bottom:10px;
@@ -125,9 +178,10 @@ thead th{
   background:var(--surface-2); text-align:right; padding:9px 10px; font-size:11.5px;
   color:var(--cream-dim); font-weight:800; white-space:nowrap;
 }
-tbody td{padding:8px 10px; border-top:1px solid var(--line); vertical-align:top;}
+tbody td{padding:8px 10px; border-top:1px solid var(--line); vertical-align:top; color:var(--cream-dim);}
 tbody tr:hover{background:var(--surface-2);}
 .empty-note{padding:18px; text-align:center; color:var(--muted); font-size:13px;}
+.table-scroll{overflow-x:auto;}
 
 /* ---------- بث الترابيزات (تبويب الداشبورد) ---------- */
 .tables-live-head{
@@ -146,8 +200,8 @@ tbody tr:hover{background:var(--surface-2);}
   background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:12px 8px; text-align:center;
 }
 .table-live-card.occupied{
-  border-color:var(--gold); background:linear-gradient(160deg,#fff3e6,#ffe6c8);
-  box-shadow:0 0 0 1px rgba(249,115,22,.15);
+  border-color:var(--gold); background:linear-gradient(160deg,#3a2c17,#2c2013);
+  box-shadow:0 0 0 1px rgba(217,165,76,.2);
 }
 .table-live-card .tl-name{font-weight:800; font-size:14px; color:var(--cream); margin-top:2px;}
 .table-live-card .tl-status{font-size:11px; font-weight:700; color:var(--ok); margin-top:5px;}
@@ -159,7 +213,7 @@ tbody tr:hover{background:var(--surface-2);}
 
 /* ---------- مودال تفاصيل الترابيزة ---------- */
 .table-modal-overlay{
-  display:none; position:fixed; inset:0; background:rgba(51,47,39,.45); z-index:999;
+  display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:999;
   align-items:center; justify-content:center; padding:16px;
 }
 .table-modal-overlay.show{display:flex;}
@@ -262,8 +316,9 @@ tbody tr:hover{background:var(--surface-2);}
 
 <div id="loginScreen">
   <div class="login-box">
+    <div class="login-logo">☕</div>
     <h1>أنيسيفورس كافي</h1>
-    <div class="sub">متابعة المبيعات من أي مكان</div>
+    <div class="sub">متابعة الفرع من أي مكان</div>
     <div class="field">
       <label>الإيميل</label>
       <input type="email" id="loginEmail" autocomplete="username" placeholder="you@example.com">
@@ -272,7 +327,7 @@ tbody tr:hover{background:var(--surface-2);}
       <label>كلمة المرور</label>
       <input type="password" id="loginPassword" autocomplete="current-password" placeholder="••••••••">
     </div>
-    <button class="btn" id="loginBtn">تسجيل الدخول</button>
+    <button class="btn" id="loginBtn">دخول</button>
     <div class="err-msg" id="loginErr"></div>
   </div>
 </div>
@@ -280,20 +335,14 @@ tbody tr:hover{background:var(--surface-2);}
 <div id="app">
   <div class="wrap">
     <div class="topbar">
-      <div>
-        <h1>أنيسيفورس كافي — متابعة المبيعات</h1>
-        <span class="status-dot off" id="statusDot"></span><span class="status-txt" id="statusTxt">جاري الاتصال...</span>
+      <div class="topbar-brand">
+        <div class="topbar-logo">☕</div>
+        <div>
+          <h1>أنيسيفورس كافي</h1>
+          <span class="status-dot off" id="statusDot"></span><span class="status-txt" id="statusTxt">جاري الاتصال...</span>
+        </div>
       </div>
-      <button class="logout-btn" id="logoutBtn">تسجيل الخروج</button>
-    </div>
-
-    <div class="tabbar">
-      <button class="tab-btn active" id="tabBtnMonitor">🔴 متابعة لحظية</button>
-      <button class="tab-btn" id="tabBtnTables">🪑 بث الترابيزات</button>
-      <button class="tab-btn" id="tabBtnReports">📊 تقارير وإحصائيات</button>
-      <button class="tab-btn" id="tabBtnInventory">📦 المخزون</button>
-      <button class="tab-btn" id="tabBtnMenu">🍽️ المنيو والأسعار</button>
-      <button class="tab-btn" id="tabBtnStaff">👥 الموظفين وسجل العمليات</button>
+      <button class="logout-btn" id="logoutBtn">خروج</button>
     </div>
 
     <div class="tab-panel active" id="tabMonitor">
@@ -304,19 +353,27 @@ tbody tr:hover{background:var(--surface-2);}
       </div>
 
       <div class="cards-grid">
-        <div class="card accent"><div class="lbl">إجمالي المبيعات</div><div class="val" id="cGross">٠</div></div>
-        <div class="card ok"><div class="lbl">صافي المبيعات</div><div class="val" id="cNet">٠</div></div>
-        <div class="card"><div class="lbl">كاش</div><div class="val" id="cCash">٠</div></div>
-        <div class="card"><div class="lbl">محافظ / فودافون كاش</div><div class="val" id="cWallet">٠</div></div>
-        <div class="card danger"><div class="lbl">المصروفات</div><div class="val" id="cExp">٠</div></div>
-        <div class="card"><div class="lbl">عدد الفواتير</div><div class="val" id="cCount">٠</div></div>
+        <div class="card c-green"><div class="ic">🧍</div><div class="lbl">الحضور اليوم</div><div class="val" id="cAttendance">٠</div></div>
+        <div class="card c-blue"><div class="ic">⏱️</div><div class="lbl">ساعات العمل</div><div class="val" id="cWorkHours">٠</div></div>
+        <div class="card c-orange"><div class="ic">💰</div><div class="lbl">إجمالي المبيعات</div><div class="val" id="cGross">٠</div></div>
+        <div class="card c-red"><div class="ic">🧾</div><div class="lbl">المصروفات</div><div class="val" id="cExp">٠</div></div>
+        <div class="card c-teal"><div class="ic">✅</div><div class="lbl">صافي المبيعات</div><div class="val" id="cNet">٠</div></div>
+        <div class="card c-purple"><div class="ic">📋</div><div class="lbl">عدد الفواتير</div><div class="val" id="cCount">٠</div></div>
+      </div>
+
+      <div class="summary-box">
+        <h3>ملخص اليوم</h3>
+        <div class="summary-row"><span>إجمالي الإيرادات</span><b id="sumGross">٠ ج</b></div>
+        <div class="summary-row"><span>كاش</span><b id="cCash">٠ ج</b></div>
+        <div class="summary-row"><span>محافظ / فودافون كاش</span><b id="cWallet">٠ ج</b></div>
+        <div class="summary-row"><span>صافي الربح التقريبي</span><b id="sumProfit">٠ ج</b></div>
       </div>
 
       <div class="section-title">الورديات</div>
       <div id="shiftsBox"><div class="panel"><div class="empty-note">جاري التحميل...</div></div></div>
 
       <div class="section-title">أحدث الفواتير (لحظي)</div>
-      <div class="panel">
+      <div class="panel table-scroll">
         <table>
           <thead><tr>
             <th>الوقت</th><th>الترابيزة</th><th>الأصناف</th><th>الخصم</th><th>الإجمالي</th><th>طريقة الدفع</th><th>الكاشير</th>
@@ -327,7 +384,7 @@ tbody tr:hover{background:var(--surface-2);}
       </div>
 
       <div class="section-title">المصروفات (لحظي)</div>
-      <div class="panel">
+      <div class="panel table-scroll">
         <table>
           <thead><tr>
             <th>الوقت</th><th>النوع</th><th>ملاحظة</th><th>المبلغ</th><th>الكاشير</th>
@@ -375,10 +432,10 @@ tbody tr:hover{background:var(--surface-2);}
       </div>
 
       <div class="cards-grid">
-        <div class="card accent"><div class="lbl">إجمالي المبيعات</div><div class="val" id="rGross">٠</div></div>
-        <div class="card ok"><div class="lbl">صافي الربح الحقيقي</div><div class="val" id="rProfit">٠</div></div>
-        <div class="card danger"><div class="lbl">إجمالي المصروفات</div><div class="val" id="rExp">٠</div></div>
-        <div class="card"><div class="lbl">عدد الفواتير</div><div class="val" id="rCount">٠</div></div>
+        <div class="card c-orange"><div class="lbl">إجمالي المبيعات</div><div class="val" id="rGross">٠</div></div>
+        <div class="card c-teal"><div class="lbl">صافي الربح الحقيقي</div><div class="val" id="rProfit">٠</div></div>
+        <div class="card c-red"><div class="lbl">إجمالي المصروفات</div><div class="val" id="rExp">٠</div></div>
+        <div class="card c-purple"><div class="lbl">عدد الفواتير</div><div class="val" id="rCount">٠</div></div>
       </div>
 
       <div class="chart-box">
@@ -389,12 +446,6 @@ tbody tr:hover{background:var(--surface-2);}
       <div class="chart-box">
         <h3>أكتر 10 أصناف مبيعاً (بالكمية)</h3>
         <canvas id="topSellersChart"></canvas>
-      </div>
-
-      <div class="section-title">الأصناف الراكدة (متوفرة في المنيو ومالهاش أي مبيعات في الفترة دي)</div>
-      <div class="panel pad">
-        <div class="slow-list" id="slowMoversList"></div>
-        <div class="empty-note" id="slowMoversEmpty" style="display:none;">كل أصناف المنيو اتباعت خلال الفترة دي 👏</div>
       </div>
     </div>
 
@@ -435,7 +486,67 @@ tbody tr:hover{background:var(--surface-2);}
       <div id="menuEditorBox"></div>
     </div>
 
-    <div class="tab-panel" id="tabStaff">
+    <div class="tab-panel" id="tabStaffHR">
+      <div class="chart-box">
+        <h3>إضافة موظف جديد</h3>
+        <div class="day-select-row" style="margin-bottom:8px;">
+          <input type="text" id="hrNewName" placeholder="الاسم">
+          <select id="hrNewJob">
+            <option value="باريستا">باريستا</option>
+            <option value="كاشير">كاشير</option>
+            <option value="شيف">شيف</option>
+            <option value="ويتر">ويتر</option>
+            <option value="سيكيورتي">سيكيورتي</option>
+            <option value="أخرى">أخرى</option>
+          </select>
+        </div>
+        <div class="day-select-row" style="margin-bottom:8px;">
+          <input type="text" id="hrNewPhone" placeholder="رقم الهاتف">
+          <input type="number" step="any" id="hrNewSalary" placeholder="الراتب الأساسي">
+        </div>
+        <div class="day-select-row" style="margin-bottom:0;">
+          <input type="date" id="hrNewStartDate">
+          <button class="btn" style="width:auto; padding:9px 16px;" id="addHrStaffBtn">حفظ الموظف</button>
+        </div>
+      </div>
+
+      <div class="section-title">قائمة الموظفين</div>
+      <div id="hrStaffListBox"></div>
+
+      <div class="section-title">
+        <span>الجدول اليومي — الحضور والانصراف</span>
+      </div>
+      <div class="chart-box">
+        <div class="day-select-row" style="margin-bottom:10px;">
+          <input type="date" id="hrAttendanceDate">
+        </div>
+        <div class="day-select-row" style="margin-bottom:0; flex-wrap:wrap;">
+          <select id="hrAttEmployee" style="min-width:160px;"></select>
+          <input type="time" id="hrAttIn" placeholder="الحضور">
+          <input type="time" id="hrAttOut" placeholder="الانصراف">
+          <input type="number" step="any" id="hrAttDeduction" placeholder="الخصم" style="max-width:110px;">
+          <input type="number" step="any" id="hrAttAdvance" placeholder="السلفة" style="max-width:110px;">
+          <button class="btn" style="width:auto; padding:9px 16px;" id="addHrAttBtn">تسجيل</button>
+        </div>
+      </div>
+
+      <div class="panel table-scroll">
+        <table>
+          <thead><tr>
+            <th>الاسم</th><th>الحضور</th><th>الانصراف</th><th>الساعات</th><th>الخصم</th><th>السلفة</th><th></th>
+          </tr></thead>
+          <tbody id="hrAttendanceBody"></tbody>
+        </table>
+        <div class="empty-note" id="hrAttendanceEmpty" style="display:none;">لا توجد تسجيلات حضور لهذا اليوم بعد</div>
+      </div>
+      <div class="summary-box">
+        <div class="summary-row"><span>إجمالي الساعات</span><b id="hrTotalHours">٠</b></div>
+        <div class="summary-row"><span>إجمالي الخصومات</span><b id="hrTotalDeduction">٠</b></div>
+        <div class="summary-row"><span>إجمالي السلف</span><b id="hrTotalAdvance">٠</b></div>
+      </div>
+    </div>
+
+    <div class="tab-panel" id="tabAccounts">
       <div class="chart-box">
         <h3>إضافة حساب موظف جديد</h3>
         <div class="day-select-row" style="margin-bottom:8px;">
@@ -462,7 +573,7 @@ tbody tr:hover{background:var(--surface-2);}
         <button class="btn" style="width:auto; padding:9px 16px;" id="addStaffBtn">إضافة الحساب</button>
       </div>
 
-      <div class="section-title">حسابات الموظفين وصلاحياتهم</div>
+      <div class="section-title">حسابات الموظفين وصلاحياتهم (دخول الكاشير)</div>
       <div id="staffListBox"></div>
 
       <div class="section-title">سجل العمليات الحساسة (حذف فواتير / مصروفات)</div>
@@ -475,6 +586,24 @@ tbody tr:hover{background:var(--surface-2);}
         </table>
         <div class="empty-note" id="auditLogEmpty" style="display:none;">لا توجد عمليات حذف مسجلة</div>
       </div>
+
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <button class="bn-btn active" id="bnMonitor"><span class="ic">🏠</span>الرئيسية</button>
+    <button class="bn-btn" id="bnStaffHR"><span class="ic">🧍</span>الاستاف</button>
+    <button class="bn-btn" id="bnInventory"><span class="ic">📦</span>المخزون</button>
+    <button class="bn-btn" id="bnMenu"><span class="ic">🍽️</span>المنيو</button>
+    <button class="bn-btn" id="bnMore"><span class="ic">☰</span>المزيد</button>
+  </div>
+
+  <div class="more-sheet-overlay" id="moreSheetOverlay">
+    <div class="more-sheet">
+      <div class="handle"></div>
+      <button class="more-item" id="moreTables"><span class="ic">🪑</span> بث الترابيزات</button>
+      <button class="more-item" id="moreReports"><span class="ic">📊</span> تقارير وإحصائيات</button>
+      <button class="more-item" id="moreAccounts"><span class="ic">👥</span> حسابات الكاشير وسجل العمليات</button>
     </div>
   </div>
 </div>
@@ -516,7 +645,7 @@ async function init(){
   const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
   const { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } =
     await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
-  const { getFirestore, collection, query, where, orderBy, limit, onSnapshot, doc, getDoc, setDoc, serverTimestamp } =
+  const { getFirestore, collection, query, where, orderBy, limit, onSnapshot, doc, getDoc, setDoc, deleteDoc, serverTimestamp } =
     await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
 
   const app = initializeApp(FIREBASE_CONFIG);
@@ -547,7 +676,7 @@ async function init(){
     if(user){
       loginScreen.style.display = 'none';
       appEl.style.display = 'block';
-      startDashboard(db, { collection, query, where, orderBy, limit, onSnapshot, doc, getDoc, setDoc, serverTimestamp });
+      startDashboard(db, { collection, query, where, orderBy, limit, onSnapshot, doc, getDoc, setDoc, deleteDoc, serverTimestamp });
     } else {
       appEl.style.display = 'none';
       loginScreen.style.display = 'flex';
@@ -556,26 +685,35 @@ async function init(){
 }
 
 /* ============ تبديل التبويبات ============ */
-document.getElementById('tabBtnMonitor').addEventListener('click', ()=> switchTab('monitor'));
-document.getElementById('tabBtnTables').addEventListener('click', ()=> switchTab('tables'));
-document.getElementById('tabBtnReports').addEventListener('click', ()=> switchTab('reports'));
-document.getElementById('tabBtnInventory').addEventListener('click', ()=> switchTab('inventory'));
-document.getElementById('tabBtnMenu').addEventListener('click', ()=> switchTab('menu'));
-document.getElementById('tabBtnStaff').addEventListener('click', ()=> switchTab('staff'));
+/* ============ التنقل: الشريط السفلي + شيت "المزيد" ============ */
+const BN_TABS = ['monitor','staffhr','inventory','menu','tables','reports','accounts'];
+const BN_PRIMARY = {monitor:'bnMonitor', staffhr:'bnStaffHR', inventory:'bnInventory', menu:'bnMenu'};
+const TAB_PANEL_ID = {monitor:'tabMonitor', staffhr:'tabStaffHR', inventory:'tabInventory', menu:'tabMenu', tables:'tabTables', reports:'tabReports', accounts:'tabAccounts'};
+
 function switchTab(which){
-  document.getElementById('tabBtnMonitor').classList.toggle('active', which==='monitor');
-  document.getElementById('tabBtnTables').classList.toggle('active', which==='tables');
-  document.getElementById('tabBtnReports').classList.toggle('active', which==='reports');
-  document.getElementById('tabBtnInventory').classList.toggle('active', which==='inventory');
-  document.getElementById('tabBtnMenu').classList.toggle('active', which==='menu');
-  document.getElementById('tabBtnStaff').classList.toggle('active', which==='staff');
-  document.getElementById('tabMonitor').classList.toggle('active', which==='monitor');
-  document.getElementById('tabTables').classList.toggle('active', which==='tables');
-  document.getElementById('tabReports').classList.toggle('active', which==='reports');
-  document.getElementById('tabInventory').classList.toggle('active', which==='inventory');
-  document.getElementById('tabMenu').classList.toggle('active', which==='menu');
-  document.getElementById('tabStaff').classList.toggle('active', which==='staff');
+  BN_TABS.forEach(t=>{
+    document.getElementById(TAB_PANEL_ID[t]).classList.toggle('active', t===which);
+  });
+  Object.entries(BN_PRIMARY).forEach(([t,btnId])=>{
+    document.getElementById(btnId).classList.toggle('active', t===which);
+  });
+  closeMoreSheet();
+  window.scrollTo({top:0, behavior:'smooth'});
 }
+
+document.getElementById('bnMonitor').addEventListener('click', ()=> switchTab('monitor'));
+document.getElementById('bnStaffHR').addEventListener('click', ()=> switchTab('staffhr'));
+document.getElementById('bnInventory').addEventListener('click', ()=> switchTab('inventory'));
+document.getElementById('bnMenu').addEventListener('click', ()=> switchTab('menu'));
+document.getElementById('bnMore').addEventListener('click', ()=> openMoreSheet());
+document.getElementById('moreTables').addEventListener('click', ()=> switchTab('tables'));
+document.getElementById('moreReports').addEventListener('click', ()=> switchTab('reports'));
+document.getElementById('moreAccounts').addEventListener('click', ()=> switchTab('accounts'));
+document.getElementById('moreSheetOverlay').addEventListener('click', (e)=>{
+  if(e.target.id === 'moreSheetOverlay') closeMoreSheet();
+});
+function openMoreSheet(){ document.getElementById('moreSheetOverlay').classList.add('show'); }
+function closeMoreSheet(){ document.getElementById('moreSheetOverlay').classList.remove('show'); }
 
 /* ============ تبويب المتابعة اللحظية ============ */
 let _daysUnsub = null, _ordersUnsub = null, _expensesUnsub = null, _shiftsUnsub = null;
@@ -615,6 +753,7 @@ function startDashboard(db, fns){
   startInventory(db, fns);
   startMenuSync(db, fns);
   startStaff(db, fns);
+  startStaffHR(db, fns);
   startTablesLive(db, fns);
 }
 
@@ -786,10 +925,12 @@ function updateSummary(orders, expenses){
   const expTotal = expenses.reduce((s,e)=>s+(e.amount||0),0);
   document.getElementById('cGross').textContent = fmt2(gross);
   document.getElementById('cNet').textContent = fmt2(net);
-  document.getElementById('cCash').textContent = fmt2(cash);
-  document.getElementById('cWallet').textContent = fmt2(wallet);
+  document.getElementById('cCash').textContent = fmt2(cash) + ' ج';
+  document.getElementById('cWallet').textContent = fmt2(wallet) + ' ج';
   document.getElementById('cExp').textContent = fmt2(expTotal);
   document.getElementById('cCount').textContent = orders.length;
+  document.getElementById('sumGross').textContent = fmt2(gross) + ' ج';
+  document.getElementById('sumProfit').textContent = fmt2(net - expTotal) + ' ج';
 }
 
 function renderOrders(orders){
@@ -951,10 +1092,6 @@ function renderReports(orders, expenses){
   const sortedItems = Object.entries(itemQty).sort((a,b)=>b[1]-a[1]);
   const top10 = sortedItems.slice(0,10);
   renderTopSellersChart(top10.map(x=>x[0]), top10.map(x=>x[1]));
-
-  const soldNames = new Set(Object.keys(itemQty));
-  const slowMovers = _menuCatalog.filter(item => !soldNames.has(item.name));
-  renderSlowMovers(slowMovers);
 }
 
 function renderPeakHoursChart(labels, data){
@@ -962,7 +1099,7 @@ function renderPeakHoursChart(labels, data){
   if(_peakChart) _peakChart.destroy();
   _peakChart = new Chart(ctx, {
     type: 'bar',
-    data: { labels, datasets: [{ label: 'عدد الفواتير', data, backgroundColor: '#f97316', borderRadius: 4 }] },
+    data: { labels, datasets: [{ label: 'عدد الفواتير', data, backgroundColor: '#d9a54c', borderRadius: 4 }] },
     options: {
       responsive:true,
       plugins:{ legend:{ display:false } },
@@ -976,7 +1113,7 @@ function renderTopSellersChart(labels, data){
   if(_topSellersChart) _topSellersChart.destroy();
   _topSellersChart = new Chart(ctx, {
     type: 'bar',
-    data: { labels, datasets: [{ label: 'الكمية المباعة', data, backgroundColor: '#4aae35', borderRadius: 4 }] },
+    data: { labels, datasets: [{ label: 'الكمية المباعة', data, backgroundColor: '#38c172', borderRadius: 4 }] },
     options: {
       indexAxis: 'y',
       responsive:true,
@@ -986,24 +1123,7 @@ function renderTopSellersChart(labels, data){
   });
 }
 
-function renderSlowMovers(items){
-  const box = document.getElementById('slowMoversList');
-  const empty = document.getElementById('slowMoversEmpty');
-  if(!_menuCatalog.length){
-    box.innerHTML = '';
-    empty.style.display = 'block';
-    empty.textContent = 'لسه المنيو معملوش مزامنة من الكاشير. افتح الكاشير مرة وسيبه شغال وهيتزامن أوتوماتيك.';
-    return;
-  }
-  if(!items.length){
-    box.innerHTML = '';
-    empty.style.display = 'block';
-    empty.textContent = 'كل أصناف المنيو اتباعت خلال الفترة دي 👏';
-    return;
-  }
-  empty.style.display = 'none';
-  box.innerHTML = items.map(i => `<span class="slow-chip">${i.name}</span>`).join('');
-}
+
 
 /* ============ تبويب المخزون ============ */
 let _invDb = null, _invFns = null, _invItems = [];
@@ -1101,7 +1221,7 @@ function renderInventory(items){
     banner.style.display = 'block';
     lowList.innerHTML = lowItems.map(i=>{
       const st = stockStatus(i);
-      return `<span class="slow-chip" style="border-color:${st.cls==='stock-out'?'#c0392b':'#ea580c'}; color:${st.cls==='stock-out'?'#c0392b':'#ea580c'};">${i.name} (${fmt2(i.currentQty)} ${i.unit||''})</span>`;
+      return `<span class="slow-chip" style="border-color:${st.cls==='stock-out'?'#e0544a':'#d9a54c'}; color:${st.cls==='stock-out'?'#e0544a':'#d9a54c'};">${i.name} (${fmt2(i.currentQty)} ${i.unit||''})</span>`;
     }).join('');
   } else {
     banner.style.display = 'none';
@@ -1456,6 +1576,204 @@ function renderAuditLog(rows){
       <td>${r.byCashier||'-'} <span style="color:var(--muted); font-size:11px;">(${r.byUsername||'-'})</span></td>
     </tr>`;
   }).join('');
+}
+
+/* ============ تبويب الاستاف (ملفات الموظفين + الحضور والانصراف) ============
+   نفس نمط المزامنة المستخدم بالظبط مع حسابات الكاشير والمخزون والمنيو:
+   ملفات الموظفين بتتخزن في مستند واحد settings/staffProfiles، وتسجيلات الحضور
+   بتتخزن كل واحدة في مستند مستقل في كولكشن attendance (زي الفواتير والمصروفات)
+   عشان تقدر تتصفّى بسهولة حسب اليوم (dateKey). ================================= */
+let _hrDb = null, _hrFns = null;
+let _hrProfiles = [];
+let _hrAttendance = [];
+let _hrAttUnsub = null;
+let _suppressHrProfilesRender = false;
+
+function startStaffHR(db, fns){
+  _hrDb = db; _hrFns = fns;
+  const { doc, onSnapshot } = fns;
+  const dateInput = document.getElementById('hrAttendanceDate');
+  dateInput.value = todayIso();
+
+  onSnapshot(doc(db, 'settings', 'staffProfiles'), (snap)=>{
+    if(_suppressHrProfilesRender) return;
+    _hrProfiles = snap.exists() ? (snap.data().employees || []) : [];
+    renderHrStaffList();
+    renderHrEmployeeSelect();
+  }, (err)=> console.warn('تعذر تحميل ملفات الموظفين', err));
+
+  dateInput.addEventListener('change', ()=> loadHrAttendance(dateInput.value));
+  loadHrAttendance(dateInput.value);
+
+  document.getElementById('addHrStaffBtn').addEventListener('click', ()=>{
+    const name = document.getElementById('hrNewName').value.trim();
+    const job = document.getElementById('hrNewJob').value;
+    const phone = document.getElementById('hrNewPhone').value.trim();
+    const salary = parseFloat(document.getElementById('hrNewSalary').value) || 0;
+    const startDate = document.getElementById('hrNewStartDate').value || todayIso();
+    if(!name){ alert('اكتب اسم الموظف'); return; }
+    _hrProfiles.push({ id: 'emp_' + Date.now(), name, job, phone, salary, startDate });
+    pushHrProfilesToCloud();
+    renderHrStaffList();
+    renderHrEmployeeSelect();
+    document.getElementById('hrNewName').value = '';
+    document.getElementById('hrNewPhone').value = '';
+    document.getElementById('hrNewSalary').value = '';
+    document.getElementById('hrNewStartDate').value = '';
+  });
+
+  document.getElementById('addHrAttBtn').addEventListener('click', ()=>{
+    const empId = document.getElementById('hrAttEmployee').value;
+    const emp = _hrProfiles.find(e=>e.id===empId);
+    if(!emp){ alert('اختار الموظف الأول'); return; }
+    const checkIn = document.getElementById('hrAttIn').value;
+    const checkOut = document.getElementById('hrAttOut').value;
+    const deduction = parseFloat(document.getElementById('hrAttDeduction').value) || 0;
+    const advance = parseFloat(document.getElementById('hrAttAdvance').value) || 0;
+    const dateKey = dateInput.value || todayIso();
+    const hours = calcHours(checkIn, checkOut);
+    const id = `att_${dateKey}_${empId}`;
+    pushHrAttendance({ id, dateKey, employeeId: empId, employeeName: emp.name, checkIn, checkOut, hours, deduction, advance });
+    document.getElementById('hrAttIn').value = '';
+    document.getElementById('hrAttOut').value = '';
+    document.getElementById('hrAttDeduction').value = '';
+    document.getElementById('hrAttAdvance').value = '';
+  });
+}
+
+function calcHours(checkIn, checkOut){
+  if(!checkIn || !checkOut) return 0;
+  const [h1,m1] = checkIn.split(':').map(Number);
+  const [h2,m2] = checkOut.split(':').map(Number);
+  let mins = (h2*60+m2) - (h1*60+m1);
+  if(mins < 0) mins += 24*60; // عدّى نص الليل
+  return Math.round((mins/60)*100)/100;
+}
+
+function pushHrProfilesToCloud(){
+  if(!_hrDb || !_hrFns) return;
+  const { doc, setDoc, serverTimestamp } = _hrFns;
+  _suppressHrProfilesRender = true;
+  setDoc(doc(_hrDb, 'settings', 'staffProfiles'), {
+    employees: _hrProfiles, updatedAt: serverTimestamp(), updatedBy: 'dashboard'
+  }).finally(()=>{ setTimeout(()=>{ _suppressHrProfilesRender = false; }, 800); });
+}
+
+function pushHrAttendance(rec){
+  if(!_hrDb || !_hrFns) return;
+  const { doc, setDoc, serverTimestamp } = _hrFns;
+  return setDoc(doc(_hrDb, 'attendance', rec.id), {
+    ...rec, updatedAt: serverTimestamp(), updatedBy: 'dashboard'
+  }).catch(err=>{
+    console.warn('فشل تسجيل الحضور', err);
+    alert('حصل خطأ أثناء الحفظ، تأكد من الاتصال بالإنترنت.');
+  });
+}
+
+function deleteHrAttendance(id){
+  if(!_hrDb || !_hrFns) return;
+  const { doc, deleteDoc } = _hrFns;
+  if(typeof deleteDoc !== 'function') return;
+  deleteDoc(doc(_hrDb, 'attendance', id)).catch(err=> console.warn('فشل حذف التسجيل', err));
+}
+
+function loadHrAttendance(dateKey){
+  if(!_hrDb || !_hrFns) return;
+  const { collection, query, where, onSnapshot } = _hrFns;
+  if(_hrAttUnsub) _hrAttUnsub();
+  const q = query(collection(_hrDb,'attendance'), where('dateKey','==', dateKey || todayIso()));
+  _hrAttUnsub = onSnapshot(q, (snap)=>{
+    _hrAttendance = [];
+    snap.forEach(d=> _hrAttendance.push(d.data()));
+    renderHrAttendance();
+  }, (err)=> console.warn('تعذر تحميل تسجيلات الحضور', err));
+}
+
+function renderHrEmployeeSelect(){
+  const sel = document.getElementById('hrAttEmployee');
+  if(!sel) return;
+  const prev = sel.value;
+  sel.innerHTML = _hrProfiles.map(e=>`<option value="${e.id}">${escapeHtmlD(e.name)}</option>`).join('') || '<option value="">لا يوجد موظفين بعد</option>';
+  if(_hrProfiles.find(e=>e.id===prev)) sel.value = prev;
+}
+
+function renderHrStaffList(){
+  const box = document.getElementById('hrStaffListBox');
+  if(!box) return;
+  if(!_hrProfiles.length){
+    box.innerHTML = '<div class="panel"><div class="empty-note">لسه مفيش موظفين متسجلين. ضيفي أول موظف من الفورم اللي فوق.</div></div>';
+    return;
+  }
+  box.innerHTML = _hrProfiles.map((e, idx)=>`
+    <div class="staff-card" data-idx="${idx}">
+      <div class="top">
+        <div><b>🧍 ${escapeHtmlD(e.name)}</b> <span>(${escapeHtmlD(e.job||'-')})</span></div>
+        <button class="icon-btn danger" data-role="del-hr-staff">🗑️ حذف</button>
+      </div>
+      <div class="staff-perms" style="color:var(--cream-dim); font-size:12.5px;">
+        <span>📞 ${escapeHtmlD(e.phone||'-')}</span>
+        <span>💰 ${fmt2(e.salary||0)} ج راتب أساسي</span>
+        <span>📅 ${escapeHtmlD(e.startDate||'-')}</span>
+      </div>
+    </div>`).join('');
+
+  box.querySelectorAll('[data-role="del-hr-staff"]').forEach(btn=>{
+    const idx = parseInt(btn.closest('.staff-card').dataset.idx);
+    btn.addEventListener('click', ()=>{
+      if(!confirm(`متأكد من حذف "${_hrProfiles[idx].name}" من قائمة الموظفين؟`)) return;
+      _hrProfiles.splice(idx,1);
+      pushHrProfilesToCloud();
+      renderHrStaffList();
+      renderHrEmployeeSelect();
+    });
+  });
+}
+
+function renderHrAttendance(){
+  const body = document.getElementById('hrAttendanceBody');
+  const empty = document.getElementById('hrAttendanceEmpty');
+  if(!body) return;
+  if(!_hrAttendance.length){
+    body.innerHTML = '';
+    empty.style.display = 'block';
+    document.getElementById('hrTotalHours').textContent = '٠';
+    document.getElementById('hrTotalDeduction').textContent = '٠ ج';
+    document.getElementById('hrTotalAdvance').textContent = '٠ ج';
+    updateHomeStaffCards(0);
+    return;
+  }
+  empty.style.display = 'none';
+  let totalHours = 0, totalDed = 0, totalAdv = 0;
+  body.innerHTML = _hrAttendance.map(r=>{
+    totalHours += r.hours||0; totalDed += r.deduction||0; totalAdv += r.advance||0;
+    return `<tr>
+      <td>${escapeHtmlD(r.employeeName||'-')}</td>
+      <td>${r.checkIn||'-'}</td>
+      <td>${r.checkOut||'-'}</td>
+      <td>${fmt2(r.hours||0)}</td>
+      <td>${fmt2(r.deduction||0)}</td>
+      <td>${fmt2(r.advance||0)}</td>
+      <td><button class="icon-btn danger" data-id="${r.id}" data-role="del-att">🗑️</button></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('hrTotalHours').textContent = fmt2(totalHours);
+  document.getElementById('hrTotalDeduction').textContent = fmt2(totalDed) + ' ج';
+  document.getElementById('hrTotalAdvance').textContent = fmt2(totalAdv) + ' ج';
+  updateHomeStaffCards(totalHours);
+
+  body.querySelectorAll('[data-role="del-att"]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      if(!confirm('متأكد من حذف تسجيل الحضور ده؟')) return;
+      deleteHrAttendance(btn.dataset.id);
+    });
+  });
+}
+
+function updateHomeStaffCards(totalHours){
+  const dateInput = document.getElementById('hrAttendanceDate');
+  if(!dateInput || dateInput.value !== todayIso()) return; // الكروت في الرئيسية بتعكس اليوم الحالي بس
+  document.getElementById('cAttendance').textContent = _hrAttendance.length;
+  document.getElementById('cWorkHours').textContent = fmt2(totalHours||0);
 }
 </script>
 
