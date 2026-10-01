@@ -2,8 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>أنيسيفورس كافي — متابعة المبيعات</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>فرع أم بيومي — متابعة المبيعات</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <style>
 :root{
@@ -25,6 +25,7 @@
   --teal:#2bbfad;
   --radius:16px;
   --nav-h:64px;
+  --safe-b:env(safe-area-inset-bottom, 0px);
 }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;height:100%;}
@@ -36,9 +37,10 @@ body{
     var(--bg);
   color:var(--cream);
   min-height:100%;
-  padding-bottom:calc(var(--nav-h) + 14px);
+  padding-bottom:calc(var(--nav-h) + var(--safe-b) + 40px);
 }
 .wrap{max-width:1100px; margin:0 auto; padding:14px 14px 6px;}
+#app .wrap::after{content:''; display:block; height:30px;}
 ::-webkit-scrollbar{width:8px; height:8px;}
 ::-webkit-scrollbar-thumb{background:var(--line); border-radius:8px;}
 
@@ -104,7 +106,7 @@ body{
 
 /* ---------- الشريط السفلي (بار التنقل الرئيسي) ---------- */
 .bottom-nav{
-  position:fixed; left:0; right:0; bottom:0; z-index:500; height:var(--nav-h);
+  position:fixed; left:0; right:0; bottom:0; z-index:500; height:calc(var(--nav-h) + var(--safe-b)); padding-bottom:var(--safe-b);
   background:var(--surface); border-top:1px solid var(--line);
   display:flex; align-items:stretch; justify-content:space-around;
   box-shadow:0 -8px 24px rgba(0,0,0,.35);
@@ -117,7 +119,7 @@ body{
 .bn-btn.active{color:var(--gold-bright);}
 .more-sheet-overlay{display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:800; align-items:flex-end; justify-content:center;}
 .more-sheet-overlay.show{display:flex;}
-.more-sheet{background:var(--surface); border-radius:20px 20px 0 0; width:100%; max-width:480px; padding:10px 8px 18px; border:1px solid var(--line); border-bottom:none;}
+.more-sheet{background:var(--surface); border-radius:20px 20px 0 0; width:100%; max-width:480px; padding:10px 8px calc(18px + var(--safe-b)); border:1px solid var(--line); border-bottom:none;}
 .more-sheet .handle{width:40px; height:4px; background:var(--line); border-radius:99px; margin:6px auto 14px;}
 .more-item{display:flex; align-items:center; gap:12px; width:100%; text-align:right; padding:13px 14px; border:none; background:none; color:var(--cream); font-family:inherit; font-size:14px; font-weight:700; cursor:pointer; border-radius:12px;}
 .more-item:hover{background:var(--surface-2);}
@@ -329,7 +331,7 @@ tbody tr:hover{background:var(--surface-2);}
 <div id="loginScreen">
   <div class="login-box">
     <div class="login-logo">☕</div>
-    <h1>أنيسيفورس كافي</h1>
+    <h1>فرع أم بيومي</h1>
     <div class="sub">متابعة الفرع من أي مكان</div>
     <div class="field">
       <label>الإيميل</label>
@@ -350,7 +352,7 @@ tbody tr:hover{background:var(--surface-2);}
       <div class="topbar-brand">
         <div class="topbar-logo">☕</div>
         <div>
-          <h1>أنيسيفورس كافي</h1>
+          <h1>فرع أم بيومي</h1>
           <span class="status-dot off" id="statusDot"></span><span class="status-txt" id="statusTxt">جاري الاتصال...</span>
         </div>
       </div>
@@ -376,6 +378,7 @@ tbody tr:hover{background:var(--surface-2);}
       <div class="summary-box">
         <h3>ملخص اليوم</h3>
         <div class="summary-row"><span>إجمالي الإيرادات</span><b id="sumGross">٠ ج</b></div>
+        <div class="summary-row"><span>إجمالي الخصومات</span><b id="sumDiscount">٠ ج</b></div>
         <div class="summary-row"><span>كاش</span><b id="cCash">٠ ج</b></div>
         <div class="summary-row"><span>محافظ / فودافون كاش</span><b id="cWallet">٠ ج</b></div>
         <div class="summary-row"><span>صافي الربح التقريبي</span><b id="sumProfit">٠ ج</b></div>
@@ -971,6 +974,8 @@ function updateSummary(orders, expenses){
   document.getElementById('cCount').textContent = orders.length;
   document.getElementById('sumGross').textContent = fmt2(gross) + ' ج';
   document.getElementById('sumProfit').textContent = fmt2(net - expTotal) + ' ج';
+  const discTotal = orders.reduce((s,o)=>s+(o.discount||0),0);
+  document.getElementById('sumDiscount').textContent = fmt2(discTotal) + ' ج';
 }
 
 function renderOrders(orders){
